@@ -8,8 +8,7 @@
   body {
     font-family: 'Roboto', sans-serif;
     background: #f0f0f0;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
   }
   header {
     background: #1a73e8;
@@ -20,8 +19,7 @@
     align-items: center;
   }
   header h1 {
-    margin: 0;
-    font-weight: 500;
+    margin: 0; font-weight: 500;
   }
   button {
     cursor: pointer;
@@ -51,7 +49,7 @@
   #add-panel {
     display: none;
     margin: 20px auto;
-    max-width: 400px;
+    max-width: 600px;
     background: white;
     padding: 20px;
     border-radius: 12px;
@@ -60,17 +58,98 @@
   #add-panel h2 {
     margin-top: 0;
   }
-  #add-panel p {
-    color: #555;
+  #items-list {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
   }
-  #logout-btn {
-    background: #d93025;
-    color: white;
-    margin-top: 15px;
+  .item-card {
+    background: #e8f0fe;
+    padding: 15px;
+    border-radius: 10px;
+    width: 160px;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 0.1);
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .item-card.dragging {
+    opacity: 0.5;
+  }
+  .item-image {
     width: 100%;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid #ddd;
   }
-  #logout-btn:hover {
+  .item-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1a73e8;
+  }
+  .item-description {
+    font-size: 14px;
+    color: #555;
+    flex-grow: 1;
+  }
+  .item-buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+  .item-buttons button {
+    background: #1a73e8;
+    color: white;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    flex-grow: 1;
+    margin: 0 2px;
+  }
+  .item-buttons button.delete {
+    background: #d93025;
+  }
+  .item-buttons button.delete:hover {
     background: #a52714;
+  }
+  .item-buttons button:hover {
+    background: #155ab6;
+  }
+  form label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+    color: #333;
+  }
+  form input[type=text], form textarea {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 4px;
+    border-radius: 6px;
+    border: 1px solid #bbb;
+    font-size: 14px;
+  }
+  form textarea {
+    resize: vertical;
+  }
+  form input[type=file] {
+    margin-top: 8px;
+  }
+  form button.submit-btn {
+    margin-top: 15px;
+    background: #1a73e8;
+    color: white;
+    width: 100%;
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+  form button.submit-btn:hover {
+    background: #155ab6;
   }
 </style>
 </head>
@@ -84,20 +163,37 @@
 
 <div id="add-panel">
   <h2>Panel administratora</h2>
-  <p>Tu bedzie formularz dodawania przedmiotow i zarzadzanie nimi</p>
-  <button id="logout-btn">Wyloguj</button>
+  <form id="item-form" enctype="multipart/form-data">
+    <label for="item-name">Nazwa przedmiotu</label>
+    <input type="text" id="item-name" required maxlength="40" />
+    <label for="item-description">Opis przedmiotu</label>
+    <textarea id="item-description" rows="3" maxlength="150"></textarea>
+    <label for="item-image">Zdjęcie (URL lub plik lokalny)</label>
+    <input type="text" id="item-image-url" placeholder="Wklej URL zdjęcia" />
+    <input type="file" id="item-image-file" accept="image/*" />
+    <button type="submit" class="submit-btn">Zapisz przedmiot</button>
+  </form>
+
+  <div id="items-list" aria-label="Lista przedmiotów">
+    <!-- tutaj pojawia sie kafelki -->
+  </div>
 </div>
 
 <script>
   const loginBtn = document.getElementById('login-btn');
   const addNewBtn = document.getElementById('add-new-btn');
   const addPanel = document.getElementById('add-panel');
-  const logoutBtn = document.getElementById('logout-btn');
+  const itemForm = document.getElementById('item-form');
+  const itemsList = document.getElementById('items-list');
+  const imageUrlInput = document.getElementById('item-image-url');
+  const imageFileInput = document.getElementById('item-image-file');
 
   const ADMIN_LOGIN = 'ifirelovereps';
   const ADMIN_PASS = 'fi123re987re098ps321';
 
   let isAdmin = false;
+  let items = [];
+  let editingIndex = -1;
 
   loginBtn.addEventListener('click', () => {
     if (isAdmin) {
@@ -106,6 +202,8 @@
       loginBtn.textContent = 'Zaloguj się';
       addNewBtn.style.display = 'none';
       addPanel.style.display = 'none';
+      itemsList.innerHTML = '';
+      clearForm();
       alert('Wylogowano');
     } else {
       const user = prompt('Podaj nazwę użytkownika:');
@@ -115,6 +213,7 @@
         loginBtn.textContent = 'Wyloguj się';
         addNewBtn.style.display = 'inline-block';
         addPanel.style.display = 'block';
+        renderItems();
         alert('Witaj, adminie!');
       } else {
         alert('Nieprawidłowe dane logowania.');
@@ -122,19 +221,138 @@
     }
   });
 
-  logoutBtn.addEventListener('click', () => {
-    if (isAdmin) {
-      isAdmin = false;
-      loginBtn.textContent = 'Zaloguj się';
-      addNewBtn.style.display = 'none';
-      addPanel.style.display = 'none';
-      alert('Wylogowano');
+  addNewBtn.addEventListener('click', () => {
+    editingIndex = -1;
+    clearForm();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+
+  itemForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    let name = document.getElementById('item-name').value.trim();
+    let desc = document.getElementById('item-description').value.trim();
+    let url = imageUrlInput.value.trim();
+
+    if (!name) {
+      alert('Nazwa przedmiotu jest wymagana.');
+      return;
+    }
+
+    if (imageFileInput.files.length > 0) {
+      // z pliku lokalnego - zrobimy odczyt base64 do wyswietlenia
+      const file = imageFileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const imageData = event.target.result;
+        saveItem(name, desc, imageData);
+      }
+      reader.readAsDataURL(file);
+    } else if (url) {
+      saveItem(name, desc, url);
+    } else {
+      alert('Musisz podać zdjęcie - URL lub wybrać plik.');
     }
   });
 
-  addNewBtn.addEventListener('click', () => {
-    alert('Tu bedzie panel dodawania przedmiotow');
-  });
+  function saveItem(name, desc, img) {
+    if (editingIndex === -1) {
+      items.push({name, desc, img});
+    } else {
+      items[editingIndex] = {name, desc, img};
+    }
+    clearForm();
+    renderItems();
+  }
+
+  function clearForm() {
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-description').value = '';
+    imageUrlInput.value = '';
+    imageFileInput.value = '';
+  }
+
+  function renderItems() {
+    itemsList.innerHTML = '';
+    items.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.draggable = true;
+      card.dataset.index = i;
+
+      card.innerHTML = `
+        <img src="${item.img}" alt="Zdjęcie ${item.name}" class="item-image" />
+        <div class="item-name">${item.name}</div>
+        <div class="item-description">${item.desc}</div>
+        <div class="item-buttons">
+          <button class="edit-btn">Edytuj</button>
+          <button class="delete delete-btn">Usuń</button>
+        </div>
+      `;
+
+      itemsList.appendChild(card);
+
+      const editBtn = card.querySelector('.edit-btn');
+      const deleteBtn = card.querySelector('.delete-btn');
+
+      editBtn.addEventListener('click', () => {
+        editingIndex = i;
+        document.getElementById('item-name').value = item.name;
+        document.getElementById('item-description').value = item.desc;
+        imageUrlInput.value = '';
+        imageFileInput.value = '';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      });
+
+      deleteBtn.addEventListener('click', () => {
+        if(confirm(`Czy na pewno chcesz usunac przedmiot "${item.name}" ?`)){
+          items.splice(i, 1);
+          renderItems();
+        }
+      });
+
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', i);
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+      });
+    });
+
+    enableDragAndDrop();
+  }
+
+  function enableDragAndDrop() {
+    const cards = document.querySelectorAll('.item-card');
+    cards.forEach(card => {
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const draggingCard = document.querySelector('.dragging');
+        if (card === draggingCard) return;
+
+        const draggingIndex = parseInt(draggingCard.dataset.index);
+        const targetIndex = parseInt(card.dataset.index);
+
+        if (draggingIndex === targetIndex) return;
+
+        if (draggingIndex < targetIndex) {
+          card.after(draggingCard);
+          moveItem(draggingIndex, targetIndex);
+        } else {
+          card.before(draggingCard);
+          moveItem(draggingIndex, targetIndex);
+        }
+      });
+    });
+  }
+
+  function moveItem(from, to) {
+    const item = items.splice(from, 1)[0];
+    items.splice(to, 0, item);
+    renderItems();
+  }
 </script>
 </body>
 </html>
