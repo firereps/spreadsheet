@@ -3,195 +3,138 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>FireReps – zarządzanie przedmiotami</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+<title>FireReps - panel admina</title>
 <style>
-  body { font-family:'Roboto',sans-serif; margin:0; background:#f5f5f5; color:#202124 }
-  header { background:#fff; padding:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.1) }
-  header h1 { margin:0; font-size:20px }
-  header button { padding:8px 16px; border:none; background:#1a73e8; color:#fff; border-radius:4px; cursor:pointer }
-  main { padding:20px; max-width:1000px; margin:auto }
-  #item-container { display:flex; flex-wrap:wrap; gap:24px; justify-content:center }
-  .item-card { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:280px; overflow:hidden; display:flex; flex-direction:column; }
-  .item-card img { width:100%; height:180px; object-fit:cover }
-  .card-content { padding:16px; flex:1; display:flex; flex-direction:column }
-  .card-content h3 { margin:0 0 8px; font-size:18px }
-  .card-content p { margin:0 0 16px; font-size:14px; color:#5f6368; flex:1 }
-  .card-buttons { display:flex; gap:8px }
-  .btn { flex:1; padding:10px; border:none; border-radius:8px; font-weight:500; cursor:pointer; color:#fff }
-  .btn-edit { background:#f9ab00 }
-  .btn-del { background:#d93025 }
-  #add-item-panel, #edit-item-panel { background:#fff; max-width:320px; padding:20px; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.12); position:fixed; top:80px; right:20px; display:none; flex-direction:column; gap:12px; z-index:100 }
-  #add-item-panel input, #add-item-panel textarea, #edit-item-panel input, #edit-item-panel textarea { padding:10px; border:1px solid #dadce0; border-radius:8px; font-size:14px }
-  .drop-area { border:2px dashed #1a73e8; padding:20px; text-align:center; border-radius:8px; color:#1a73e8; cursor:pointer }
-  .drop-area.highlight { background:rgba(26,115,232,0.1) }
-  .confirm-modal { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200 }
-  .confirm-box { background:#fff;padding:24px;border-radius:12px;text-align:center; }
-  .confirm-box button { margin:0 8px;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;color:#fff }
-  .btn-yes { background:#d93025 }
-  .btn-no { background:#5f6368 }
-  #add-new-btn { position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;background:#1a73e8;color:#fff;font-size:36px;display:none;cursor:pointer;justify-content:center;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #1a73e8;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 {
+    margin: 0;
+    font-weight: 500;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  #login-btn {
+    background: white;
+    color: #1a73e8;
+  }
+  #login-btn:hover {
+    background: #e1e7ff;
+  }
+  #add-new-btn {
+    background: #1a73e8;
+    color: white;
+    display: none;
+    margin: 20px;
+  }
+  #add-new-btn:hover {
+    background: #155ab6;
+  }
+  #add-panel {
+    display: none;
+    margin: 20px auto;
+    max-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.1);
+  }
+  #add-panel h2 {
+    margin-top: 0;
+  }
+  #add-panel p {
+    color: #555;
+  }
+  #logout-btn {
+    background: #d93025;
+    color: white;
+    margin-top: 15px;
+    width: 100%;
+  }
+  #logout-btn:hover {
+    background: #a52714;
+  }
 </style>
 </head>
 <body>
-<header><h1>FireReps</h1><button id="login-btn">Zaloguj się</button></header>
-<main><div id="item-container"></div></main>
-<div id="add-item-panel">
-  <h2>Dodaj przedmiot</h2>
-  <input type="text" id="add-name" placeholder="Nazwa" required />
-  <textarea id="add-desc" placeholder="Opis" rows="3"></textarea>
-  <input type="url" id="add-link" placeholder="Link (opcjonalnie)" />
-  <div class="drop-area" id="add-drop">Przeciągnij zdjęcie lub kliknij</div>
-  <input type="file" id="add-image" accept="image/*" style="display:none" />
-  <button id="add-submit">Dodaj</button>
+<header>
+  <h1>FireReps Spreadsheet</h1>
+  <button id="login-btn">Zaloguj się</button>
+</header>
+
+<button id="add-new-btn">Dodaj nowy przedmiot</button>
+
+<div id="add-panel">
+  <h2>Panel administratora</h2>
+  <p>Tu bedzie formularz dodawania przedmiotow i zarzadzanie nimi</p>
+  <button id="logout-btn">Wyloguj</button>
 </div>
-<div id="edit-item-panel">
-  <h2>Edytuj przedmiot</h2>
-  <input type="text" id="edit-name" placeholder="Nazwa" required />
-  <textarea id="edit-desc" placeholder="Opis" rows="3"></textarea>
-  <input type="url" id="edit-link" placeholder="Link" />
-  <div class="drop-area" id="edit-drop">Przeciągnij zdjęcie lub kliknij</div>
-  <input type="file" id="edit-image" accept="image/*" style="display:none" />
-  <button id="edit-submit">Zapisz zmiany</button>
-</div>
-<div class="confirm-modal" id="confirm-modal"><div class="confirm-box"><p>Czy na pewno chcesz usunąć ten przedmiot?</p><button class="btn-yes">Tak</button><button class="btn-no">Nie</button></div></div>
-<div id="add-new-btn">+</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+<script>
+  const loginBtn = document.getElementById('login-btn');
+  const addNewBtn = document.getElementById('add-new-btn');
+  const addPanel = document.getElementById('add-panel');
+  const logoutBtn = document.getElementById('logout-btn');
 
-const firebaseConfig = { /* twój config */ };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const storage = getStorage(app);
-const itemsRef = ref(db, 'items');
+  const ADMIN_LOGIN = 'ifirelovereps';
+  const ADMIN_PASS = 'fi123re987re098ps321';
 
-const loginBtn=document.getElementById('login-btn');
-const addNewBtn=document.getElementById('add-new-btn');
-const addPanel=document.getElementById('add-item-panel');
-const editPanel=document.getElementById('edit-item-panel');
-const confirmModal=document.getElementById('confirm-modal');
-let isAdmin = false;
-let editingKey = null;
-let deleteKey = null;
-let addFile = null;
-let editFile = null;
+  let isAdmin = false;
 
-function toggleAdminUI(){
-  if(isAdmin){
-    loginBtn.textContent='Wyloguj';
-    addNewBtn.style.display='flex';
-  } else {
-    loginBtn.textContent='Zaloguj się';
-    addNewBtn.style.display='none';
-    addPanel.style.display='none';
-    editPanel.style.display='none';
-  }
-}
-
-loginBtn.onclick=()=>{
-  if(isAdmin){
-    isAdmin=false; localStorage.removeItem('isAdmin');
-    toggleAdminUI();
-    renderItems();
-    return;
-  }
-  const u=prompt('Login:'), p=prompt('Hasło:');
-  if(u==='ifirelovereps'&&p==='fi123re987re098ps321'){
-    isAdmin=true; localStorage.setItem('isAdmin','true');
-    toggleAdminUI();
-    alert('Witaj, adminie!');
-    renderItems();
-  } else alert('Nieprawidłowe dane');
-};
-
-addNewBtn.onclick=()=>{ addPanel.style.display='flex'; };
-
-function setupDrop(dropArea, input, fileSetter){
-  dropArea.onclick=()=>input.click();
-  dropArea.ondragover=e=>{ e.preventDefault(); dropArea.classList.add('highlight'); };
-  dropArea.ondragleave=_=>dropArea.classList.remove('highlight');
-  dropArea.ondrop=e=>{ e.preventDefault(); dropArea.classList.remove('highlight'); fileSetter(e.dataTransfer.files[0]); };
-  input.onchange=_=>fileSetter(input.files[0]);
-}
-
-setupDrop(document.getElementById('add-drop'), document.getElementById('add-image'), f=>{ addFile=f; });
-setupDrop(document.getElementById('edit-drop'), document.getElementById('edit-image'), f=>{ editFile=f; });
-
-document.getElementById('add-submit').onclick=async()=>{
-  const name=document.getElementById('add-name').value.trim();
-  const desc=document.getElementById('add-desc').value.trim();
-  const link=document.getElementById('add-link').value.trim()||'';
-  if(!name||!addFile){ return alert('Podaj nazwę i dodaj zdjęcie'); }
-  const refImg = sref(storage, 'items/'+Date.now()+'_'+addFile.name);
-  await uploadBytes(refImg,addFile);
-  const url=await getDownloadURL(refImg);
-  await push(itemsRef, {name,description:desc,link,image:url});
-  addPanel.style.display='none';
-  renderItems();
-};
-
-function renderItems(){
-  onValue(itemsRef, snap=>{
-    const data=snap.val()||{};
-    const container=document.getElementById('item-container');
-    container.innerHTML='';
-    for(const [key,item] of Object.entries(data)){
-      const card=document.createElement('div'); card.className='item-card';
-      const img=document.createElement('img'); img.src=item.image;
-      const content=document.createElement('div'); content.className='card-content';
-      const h3=document.createElement('h3'); h3.textContent=item.name;
-      const p=document.createElement('p'); p.textContent=item.description;
-      content.append(h3,p);
-      if(item.link){ const a=document.createElement('a'); a.href=item.link; a.textContent='Kup teraz'; a.target='_blank'; content.appendChild(a); }
-      if(isAdmin){
-        const btns=document.createElement('div'); btns.className='card-buttons';
-        const editBtn=document.createElement('button'); editBtn.textContent='Edytuj'; editBtn.className='btn btn-edit';
-        editBtn.onclick=()=>{ editingKey=key;
-          document.getElementById('edit-name').value=item.name;
-          document.getElementById('edit-desc').value=item.description;
-          document.getElementById('edit-link').value=item.link;
-          editPanel.style.display='flex';
-        };
-        const delBtn=document.createElement('button'); delBtn.textContent='Usuń'; delBtn.className='btn btn-del';
-        delBtn.onclick=()=>{ deleteKey=key; confirmModal.style.display='flex'; };
-        btns.append(editBtn,delBtn); content.appendChild(btns);
+  loginBtn.addEventListener('click', () => {
+    if (isAdmin) {
+      // wyloguj
+      isAdmin = false;
+      loginBtn.textContent = 'Zaloguj się';
+      addNewBtn.style.display = 'none';
+      addPanel.style.display = 'none';
+      alert('Wylogowano');
+    } else {
+      const user = prompt('Podaj nazwę użytkownika:');
+      const pass = prompt('Podaj hasło:');
+      if (user === ADMIN_LOGIN && pass === ADMIN_PASS) {
+        isAdmin = true;
+        loginBtn.textContent = 'Wyloguj się';
+        addNewBtn.style.display = 'inline-block';
+        addPanel.style.display = 'block';
+        alert('Witaj, adminie!');
+      } else {
+        alert('Nieprawidłowe dane logowania.');
       }
-      card.append(img,content);
-      container.appendChild(card);
     }
-  }, {onlyOnce:true});
-}
-renderItems();
-toggleAdminUI();
+  });
 
-document.getElementById('edit-submit').onclick=async()=>{
-  if(!editingKey) return;
-  const name=document.getElementById('edit-name').value.trim();
-  const desc=document.getElementById('edit-desc').value.trim();
-  const link=document.getElementById('edit-link').value.trim()||'';
-  const updates={name,description:desc,link};
-  if(editFile){
-    const refImg=sref(storage, 'items/'+Date.now()+'_'+editFile.name);
-    await uploadBytes(refImg,editFile);
-    const url=await getDownloadURL(refImg);
-    updates.image=url;
-  }
-  await update(ref(db,'items/'+editingKey),updates);
-  editPanel.style.display='none';
-  renderItems();
-};
+  logoutBtn.addEventListener('click', () => {
+    if (isAdmin) {
+      isAdmin = false;
+      loginBtn.textContent = 'Zaloguj się';
+      addNewBtn.style.display = 'none';
+      addPanel.style.display = 'none';
+      alert('Wylogowano');
+    }
+  });
 
-document.querySelector('.btn-yes').onclick=()=>{
-  if(deleteKey) remove(ref(db,'items/'+deleteKey));
-  confirmModal.style.display='none';
-};
-
-document.querySelector('.btn-no').onclick=()=>{
-  confirmModal.style.display='none';
-};
+  addNewBtn.addEventListener('click', () => {
+    alert('Tu bedzie panel dodawania przedmiotow');
+  });
 </script>
 </body>
 </html>
