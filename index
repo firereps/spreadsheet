@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>spreadsheet repy</title>
+  <script type="module">
+    // firebase 9+ modular imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+      authDomain: "spridszit-firerepy.firebaseapp.com",
+      databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "spridszit-firidepy",
+      storageBucket: "spridszit-firerepy.firebasestorage.app",
+      messagingSenderId: "963006920352",
+      appId: "1:963006920352:web:58538b879f004c02873bc5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const listaRef = ref(db, 'lista');
+
+    window.dodaj = function() {
+      const input = document.getElementById('input');
+      const val = input.value.trim();
+      if (val) {
+        push(listaRef, val);
+        input.value = '';
+      }
+    };
+
+    window.onload = () => {
+      const ul = document.getElementById('lista');
+      onChildAdded(listaRef, (data) => {
+        const li = document.createElement('li');
+        li.textContent = data.val();
+        ul.appendChild(li);
+      });
+    };
+  </script>
+</head>
+<body>
+  <h2>dodaj cos do repowej listy</h2>
+  <input id="input" placeholder="twoj wpis" />
+  <button onclick="dodaj()">dodaj</button>
+
+  <ul id="lista"></ul>
+
+  <!-- tu mozesz miec reszte twojego html -->
+</body>
+</html>
