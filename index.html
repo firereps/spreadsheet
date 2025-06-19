@@ -8,8 +8,8 @@
   :root {
     --background-color: #111827; --primary-color: #1F2937; --border-color: #374151;
     --text-color: #F9FAFB; --text-color-muted: #9CA3AF; --accent-color: #DC2626;
-    --accent-hover-color: #B91C1C; --tag-new-bg: #e36209; --tag-best-bg: #dcb32a;
-    --tag-budget-bg: #2ea043;
+    --accent-hover-color: #B91C1C; --edit-color: #3b82f6; --edit-hover-color: #2563eb;
+    --tag-new-bg: #e36209; --tag-best-bg: #dcb32a; --tag-budget-bg: #2ea043;
   }
   body { margin: 0; background-color: var(--background-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text-color); }
   .main-header { background-color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -47,8 +47,12 @@
   .item-buy-button { margin-top: auto; display: block; text-align: center; background-color: var(--accent-color); color: white; padding: 10px; border-radius: 6px; font-weight: 600; text-decoration: none; transition: background-color 0.2s ease; }
   .item-buy-button:hover { background-color: var(--accent-hover-color); }
   .item-buy-button.disabled { background-color: var(--border-color); color: var(--text-color-muted); cursor: not-allowed; }
-  .item-delete-button { position: absolute; top: 8px; left: 8px; background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background-color 0.2s; }
+  
+  .admin-button { border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background-color 0.2s; position: absolute; top: 8px; }
+  .item-delete-button { background-color: #ef4444; color: white; left: 8px; }
   .item-delete-button:hover { background-color: #dc2626; }
+  .item-edit-button { background-color: var(--edit-color); color: white; left: 42px; }
+  .item-edit-button:hover { background-color: var(--edit-hover-color); }
 
   .modal-overlay { display: none; position: fixed; z-index: 1100; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; }
   .modal-content { background: var(--primary-color); padding: 25px 30px; border-radius: 12px; width: 380px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
@@ -62,7 +66,9 @@
   .modal-content .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
   .modal-content .modal-actions button { flex-grow: 1; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
   .modal-content .modal-actions .btn-primary { background-color: var(--accent-color); color: white; }
+  .modal-content .modal-actions .btn-primary.btn-edit { background-color: var(--edit-color); }
   .modal-content .modal-actions .btn-primary:hover { background-color: var(--accent-hover-color); }
+  .modal-content .modal-actions .btn-primary.btn-edit:hover { background-color: var(--edit-hover-color); }
   .modal-content .modal-actions .btn-secondary { background-color: var(--border-color); color: var(--text-color); }
   .modal-content .modal-actions .btn-secondary:hover { background-color: #4b5563; }
   .loader { display: none; position: absolute; inset: 0; background: rgba(31, 41, 55, 0.8); border-radius: 12px; justify-content: center; align-items: center; }
@@ -112,85 +118,55 @@
 
 <!-- Modal dodawania przedmiotu -->
 <div id="add-item-modal" class="modal-overlay">
-    <div class="modal-content">
-        <h2>Dodaj nowy przedmiot</h2>
-        <div class="form-group"><label for="item-name-input">Nazwa</label><input id="item-name-input" type="text" /></div>
-        <div class="form-group"><label for="item-desc-input">Opis</label><input id="item-desc-input" type="text" /></div>
-        <div class="form-group"><label for="item-price-input">Cena</label><input id="item-price-input" type="number" /></div>
-        <div class="form-group"><label for="item-link-input">Link do zakupu</label><input id="item-link-input" type="url" /></div>
-        <div class="form-group"><label for="item-image-input">Link do zdjęcia</label><input id="item-image-input" type="url" /></div>
-        <div class="form-group">
-            <label>Tagi</label>
-            <div class="tag-selection">
-                <label><input type="checkbox" id="tag-new"> NEW</label>
-                <label><input type="checkbox" id="tag-best"> BEST</label>
-                <label><input type="checkbox" id="tag-budget"> BUDGET</label>
-            </div>
-        </div>
-        <div class="modal-actions">
-            <button id="add-item-cancel" class="btn-secondary">Anuluj</button>
-            <button id="add-item-submit" class="btn-primary">Dodaj</button>
-        </div>
-        <div class="loader" id="add-item-loader"><div class="spinner"></div></div>
-    </div>
+  <div class="modal-content">
+    <h2>Dodaj nowy przedmiot</h2>
+    <div class="form-group"><label>Nazwa</label><input id="add-item-name" type="text" /></div>
+    <div class="form-group"><label>Opis</label><input id="add-item-desc" type="text" /></div>
+    <div class="form-group"><label>Cena</label><input id="add-item-price" type="number" /></div>
+    <div class="form-group"><label>Link do zakupu</label><input id="add-item-link" type="url" /></div>
+    <div class="form-group"><label>Link do zdjęcia</label><input id="add-item-image" type="url" /></div>
+    <div class="form-group"><label>Tagi</label><div class="tag-selection"><label><input type="checkbox" id="add-tag-new"> NEW</label><label><input type="checkbox" id="add-tag-best"> BEST</label><label><input type="checkbox" id="add-tag-budget"> BUDGET</label></div></div>
+    <div class="modal-actions"><button id="add-item-cancel" class="btn-secondary">Anuluj</button><button id="add-item-submit" class="btn-primary">Dodaj</button></div>
+    <div class="loader" id="add-item-loader"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- Modal edycji przedmiotu -->
+<div id="edit-item-modal" class="modal-overlay">
+  <div class="modal-content" data-editing-key="">
+    <h2>Edytuj przedmiot</h2>
+    <div class="form-group"><label>Nazwa</label><input id="edit-item-name" type="text" /></div>
+    <div class="form-group"><label>Opis</label><input id="edit-item-desc" type="text" /></div>
+    <div class="form-group"><label>Cena</label><input id="edit-item-price" type="number" /></div>
+    <div class="form-group"><label>Link do zakupu</label><input id="edit-item-link" type="url" /></div>
+    <div class="form-group"><label>Link do zdjęcia</label><input id="edit-item-image" type="url" /></div>
+    <div class="form-group"><label>Tagi</label><div class="tag-selection"><label><input type="checkbox" id="edit-tag-new"> NEW</label><label><input type="checkbox" id="edit-tag-best"> BEST</label><label><input type="checkbox" id="edit-tag-budget"> BUDGET</label></div></div>
+    <div class="modal-actions"><button id="edit-item-cancel" class="btn-secondary">Anuluj</button><button id="edit-item-submit" class="btn-primary btn-edit">Zapisz zmiany</button></div>
+    <div class="loader" id="edit-item-loader"><div class="spinner"></div></div>
+  </div>
 </div>
 
 <script type="module">
-// Zmieniono importy, dodano 'update'
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, onValue, push, set, remove, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = { /* Twoja konfiguracja Firebase */ };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // Globalne stany
-const ADMIN_USER = "ifirelovereps";
-const ADMIN_PASS = "fi123re987re098ps321";
-let isAdmin = false;
-let allItems = {};
-let activeFilter = 'all';
-let searchTerm = '';
+const ADMIN_USER = "ifirelovereps", ADMIN_PASS = "fi123re987re098ps321";
+let isAdmin = false, allItems = {}, activeFilter = 'all', searchTerm = '';
 
-// --- POCZĄTEK NOWEJ FUNKCJI ---
-/**
- * Sprawdza wszystkie przedmioty i usuwa tag "NEW", jeśli przedmiot jest starszy niż 3 dni.
- * @param {object} items - Obiekt ze wszystkimi przedmiotami z bazy danych.
- */
-function checkAndExpireNewTags(items) {
-    const now = new Date();
-    const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
-
-    for (const key in items) {
-        const item = items[key];
-        // Sprawdź, czy przedmiot ma tag 'isNew' i datę utworzenia
-        if (item.tags && item.tags.isNew && item.createdAt) {
-            const createdAtDate = new Date(item.createdAt);
-            const ageInMillis = now - createdAtDate;
-
-            if (ageInMillis > threeDaysInMillis) {
-                console.log(`Tag "NEW" wygasł dla przedmiotu: ${item.name}. Aktualizowanie bazy danych...`);
-                // Przygotuj ścieżkę do aktualizacji
-                const itemRef = ref(db, `items/${key}/tags`);
-                // Zaktualizuj tylko pole isNew na false
-                update(itemRef, { isNew: false });
-            }
-        }
-    }
-}
-// --- KONIEC NOWEJ FUNKCJI ---
-
-// Elementy UI
+// Elementy UI i Modali
 const loginButton = document.getElementById("login-button"), logoutButton = document.getElementById("logout-button");
 const addItemButton = document.getElementById("add-item-button"), itemsContainer = document.getElementById("items-container");
 const searchInput = document.getElementById("search-input");
 const filterBtn = document.getElementById('filter-btn'), filterDropdown = document.getElementById('filter-dropdown');
-const loginModal = document.getElementById("login-modal"), addItemModal = document.getElementById("add-item-modal");
-const loginSubmit = document.getElementById("login-submit"), addItemSubmit = document.getElementById("add-item-submit");
-const addItemCancel = document.getElementById("add-item-cancel"), addItemLoader = document.getElementById("add-item-loader");
+const loginModal = document.getElementById("login-modal"), addItemModal = document.getElementById("add-item-modal"), editItemModal = document.getElementById("edit-item-modal");
 
-const showModal = (modal) => { modal.style.display = "flex"; };
-const hideModal = (modal) => { modal.style.display = "none"; };
+const showModal = (modal) => modal.style.display = "flex";
+const hideModal = (modal) => modal.style.display = "none";
 
 const updateUIForAdmin = () => { loginButton.style.display = "none"; addItemButton.style.display = "inline-block"; logoutButton.style.display = "inline-block"; displayFilteredItems(); };
 const updateUIForGuest = () => { loginButton.style.display = "inline-block"; addItemButton.style.display = "none"; logoutButton.style.display = "none"; displayFilteredItems(); };
@@ -207,89 +183,117 @@ function renderItems(itemsToRender) {
         if (item.tags.isBest) badgesHTML += `<span class="badge badge-best">⭐ BEST</span>`;
         if (item.tags.isBudget) badgesHTML += `<span class="badge badge-budget">$ BUDGET</span>`;
     }
-    card.innerHTML = `${isAdmin ? `<button class="item-delete-button" data-key="${key}" title="Usuń przedmiot">×</button>` : ''}<div class="item-image-wrapper"><img src="${item.image || 'https://via.placeholder.com/220'}" alt="${item.name}" loading="lazy"><div class="card-badges">${badgesHTML}</div></div><div class="item-info"><div class="item-title">${item.name || 'Brak nazwy'}</div><div class="item-description">${item.description || ''}</div><div class="item-price">${item.price ? `${item.price} PLN` : ''}</div>${item.purchaseLink ? `<a href="${item.purchaseLink}" class="item-buy-button" target="_blank" rel="noopener noreferrer">Kup</a>` : `<button class="item-buy-button disabled" disabled>Brak linku</button>`}</div>`;
+    const adminButtonsHTML = isAdmin ? `
+      <button class="admin-button item-delete-button" data-key="${key}" title="Usuń">×</button>
+      <button class="admin-button item-edit-button" data-key="${key}" title="Edytuj">
+        <svg fill="currentColor" width="16" height="16" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+      </button>` : '';
+
+    card.innerHTML = `${adminButtonsHTML}<div class="item-image-wrapper"><img src="${item.image||'https://via.placeholder.com/220'}" alt="${item.name}" loading="lazy"><div class="card-badges">${badgesHTML}</div></div><div class="item-info"><div class="item-title">${item.name||'Brak nazwy'}</div><div class="item-description">${item.description||''}</div><div class="item-price">${item.price?`${item.price} PLN`:''}</div>${item.purchaseLink?`<a href="${item.purchaseLink}" class="item-buy-button" target="_blank" rel="noopener noreferrer">Kup</a>`:`<button class="item-buy-button disabled" disabled>Brak linku</button>`}</div>`;
     itemsContainer.appendChild(card);
   }
 }
 
 function displayFilteredItems() {
-    let filteredItems = { ...allItems };
-    if (activeFilter !== 'all') { filteredItems = Object.fromEntries(Object.entries(filteredItems).filter(([, item]) => item.tags && item.tags[activeFilter])); }
-    if (searchTerm) { const lowerCaseSearchTerm = searchTerm.toLowerCase(); filteredItems = Object.fromEntries(Object.entries(filteredItems).filter(([, item]) => item.name.toLowerCase().includes(lowerCaseSearchTerm))); }
-    renderItems(filteredItems);
+    let filtered = { ...allItems };
+    if (activeFilter !== 'all') filtered = Object.fromEntries(Object.entries(filtered).filter(([,i]) => i.tags && i.tags[activeFilter]));
+    if (searchTerm) filtered = Object.fromEntries(Object.entries(filtered).filter(([,i]) => i.name.toLowerCase().includes(searchTerm.toLowerCase())));
+    renderItems(filtered);
 }
 
+// Logika eventów
 loginButton.onclick = () => showModal(loginModal);
 logoutButton.onclick = () => { isAdmin = false; updateUIForGuest(); };
-addItemButton.onclick = () => {
-    document.getElementById('item-name-input').value = ''; document.getElementById('item-desc-input').value = '';
-    document.getElementById('item-price-input').value = ''; document.getElementById('item-link-input').value = '';
-    document.getElementById('item-image-input').value = ''; document.getElementById('tag-new').checked = false;
-    document.getElementById('tag-best').checked = false; document.getElementById('tag-budget').checked = false;
+
+// --- Dodawanie przedmiotu ---
+document.getElementById("add-item-button").onclick = () => {
+    document.getElementById('add-item-modal').querySelectorAll('input').forEach(input => input.type === 'checkbox' ? input.checked = false : input.value = '');
     showModal(addItemModal);
 };
-addItemCancel.onclick = () => hideModal(addItemModal);
-loginModal.onclick = (e) => { if (e.target === loginModal) hideModal(loginModal); };
-addItemModal.onclick = (e) => { if (e.target === addItemModal) hideModal(addItemModal); };
-
-loginSubmit.onclick = () => {
-  if (document.getElementById("login-username").value.trim() === ADMIN_USER && document.getElementById("login-password").value.trim() === ADMIN_PASS) {
-    isAdmin = true; hideModal(loginModal); updateUIForAdmin();
-  } else { alert("Niepoprawny login lub hasło"); }
-};
-
-addItemSubmit.onclick = async () => {
-  const name = document.getElementById('item-name-input').value.trim();
-  const price = document.getElementById('item-price-input').value.trim();
-  const purchaseLink = document.getElementById('item-link-input').value.trim();
-  const image = document.getElementById('item-image-input').value.trim();
-  if (!name || !price || !purchaseLink || !image) { alert("Wypełnij wymagane pola."); return; }
-  
+document.getElementById("add-item-cancel").onclick = () => hideModal(addItemModal);
+document.getElementById("add-item-submit").onclick = async () => {
+  const name = document.getElementById('add-item-name').value.trim();
+  const price = document.getElementById('add-item-price').value.trim();
+  if (!name || !price) { alert("Nazwa i cena są wymagane."); return; }
   const newItemData = {
-    name, description: document.getElementById('item-desc-input').value.trim(),
-    price: Number(price), purchaseLink, image,
-    tags: { isNew: document.getElementById('tag-new').checked, isBest: document.getElementById('tag-best').checked, isBudget: document.getElementById('tag-budget').checked, },
-    createdAt: new Date().toISOString() // Kluczowe dla funkcji wygasania!
+    name, price: Number(price), createdAt: new Date().toISOString(),
+    description: document.getElementById('add-item-desc').value.trim(),
+    purchaseLink: document.getElementById('add-item-link').value.trim(),
+    image: document.getElementById('add-item-image').value.trim(),
+    tags: { isNew: document.getElementById('add-tag-new').checked, isBest: document.getElementById('add-tag-best').checked, isBudget: document.getElementById('add-tag-budget').checked }
   };
-
-  addItemLoader.style.display = 'flex';
+  const loader = document.getElementById('add-item-loader');
+  loader.style.display = 'flex';
   try { await set(push(ref(db, 'items')), newItemData); hideModal(addItemModal); } 
-  catch (error) { console.error("Błąd:", error); alert("Wystąpił błąd."); } 
-  finally { addItemLoader.style.display = 'none'; }
+  catch (e) { console.error("Błąd:", e); alert("Wystąpił błąd."); } 
+  finally { loader.style.display = 'none'; }
 };
 
+// --- Edycja przedmiotu ---
+function openEditModal(key) {
+    const item = allItems[key];
+    if (!item) return;
+    document.getElementById('edit-item-modal').dataset.editingKey = key;
+    document.getElementById('edit-item-name').value = item.name || '';
+    document.getElementById('edit-item-desc').value = item.description || '';
+    document.getElementById('edit-item-price').value = item.price || '';
+    document.getElementById('edit-item-link').value = item.purchaseLink || '';
+    document.getElementById('edit-item-image').value = item.image || '';
+    document.getElementById('edit-tag-new').checked = item.tags?.isNew || false;
+    document.getElementById('edit-tag-best').checked = item.tags?.isBest || false;
+    document.getElementById('edit-tag-budget').checked = item.tags?.isBudget || false;
+    showModal(editItemModal);
+}
+document.getElementById("edit-item-cancel").onclick = () => hideModal(editItemModal);
+document.getElementById("edit-item-submit").onclick = async () => {
+    const key = document.getElementById('edit-item-modal').dataset.editingKey;
+    if (!key) return;
+    const name = document.getElementById('edit-item-name').value.trim();
+    const price = document.getElementById('edit-item-price').value.trim();
+    if (!name || !price) { alert("Nazwa i cena są wymagane."); return; }
+    const updatedData = {
+        ...allItems[key], // Zachowaj istniejące dane jak createdAt
+        name, price: Number(price),
+        description: document.getElementById('edit-item-desc').value.trim(),
+        purchaseLink: document.getElementById('edit-item-link').value.trim(),
+        image: document.getElementById('edit-item-image').value.trim(),
+        tags: { isNew: document.getElementById('edit-tag-new').checked, isBest: document.getElementById('edit-tag-best').checked, isBudget: document.getElementById('edit-tag-budget').checked }
+    };
+    const loader = document.getElementById('edit-item-loader');
+    loader.style.display = 'flex';
+    try { await set(ref(db, `items/${key}`), updatedData); hideModal(editItemModal); }
+    catch (e) { console.error("Błąd:", e); alert("Wystąpił błąd."); }
+    finally { loader.style.display = 'none'; }
+};
+
+// --- Delegacja eventów dla przycisków na kartach ---
 itemsContainer.onclick = async (e) => {
-    if (e.target.classList.contains('item-delete-button')) {
-        const key = e.target.dataset.key;
+    const deleteButton = e.target.closest('.item-delete-button');
+    const editButton = e.target.closest('.item-edit-button');
+    if (deleteButton) {
+        const key = deleteButton.dataset.key;
         if (confirm('Czy na pewno chcesz usunąć ten przedmiot?')) {
             try { await remove(ref(db, `items/${key}`)); } 
-            catch (error) { console.error("Błąd usuwania:", error); alert("Nie udało się usunąć przedmiotu."); }
+            catch (e) { console.error("Błąd usuwania:", e); alert("Nie udało się usunąć przedmiotu."); }
         }
+    } else if (editButton) {
+        openEditModal(editButton.dataset.key);
     }
 };
 
+// Inne eventy
+loginModal.onclick = (e) => { if (e.target === loginModal) hideModal(loginModal); };
+addItemModal.onclick = (e) => { if (e.target === addItemModal) hideModal(addItemModal); };
+editItemModal.onclick = (e) => { if (e.target === editItemModal) hideModal(editItemModal); };
+document.getElementById("login-submit").onclick = () => { if (document.getElementById("login-username").value.trim() === ADMIN_USER && document.getElementById("login-password").value.trim() === ADMIN_PASS) { isAdmin = true; hideModal(loginModal); updateUIForAdmin(); } else { alert("Niepoprawny login lub hasło"); } };
 searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.trim(); displayFilteredItems(); });
 filterBtn.addEventListener('click', () => { filterDropdown.style.display = filterDropdown.style.display === 'block' ? 'none' : 'block'; });
-filterDropdown.addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON') {
-        filterDropdown.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-        activeFilter = e.target.dataset.filter;
-        displayFilteredItems();
-        filterDropdown.style.display = 'none';
-    }
-});
+filterDropdown.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { filterDropdown.querySelectorAll('button').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); activeFilter = e.target.dataset.filter; displayFilteredItems(); filterDropdown.style.display = 'none'; } });
 document.addEventListener('click', (e) => { if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) { filterDropdown.style.display = 'none'; } });
 
+// Inicjalizacja
 updateUIForGuest();
-onValue(ref(db, "items"), (snapshot) => {
-    const data = snapshot.val() || {};
-    // --- WYWOŁANIE NOWEJ FUNKCJI PRZED WYŚWIETLENIEM ---
-    checkAndExpireNewTags(data);
-    allItems = data;
-    displayFilteredItems();
-});
-
+onValue(ref(db, "items"), (snapshot) => { allItems = snapshot.val() || {}; displayFilteredItems(); });
 </script>
 </body>
 </html>
