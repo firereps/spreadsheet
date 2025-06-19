@@ -2,72 +2,89 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FireReps Spreadsheet - Panel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
-  <style id="page-styles">
-    /* twoje style... */
-    body { /* … */ }
-    header { /* … */ }
-    .main-title { /* … */ }
-    #login-btn { /* … */ }
-    #item-container { /* … */ }
-    .item-card { /* … */ }
-    .item-card img { /* … */ }
-    .card-content { /* … */ }
-    .buy-btn { /* … */ }
-    .delete-btn { /* … */ }
-    body.admin-view .delete-btn { display: block; }
-    .add-card { /* … */ }
-    .modal { /* … */ }
-    .modal-content { /* … */ }
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel administracyjny - Repliki</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: Roboto, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      color: #202124;
+    }
+    #item-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      padding: 40px 20px;
+    }
+    .item-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 280px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .item-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    .card-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .card-content h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #202124;
+    }
+    .card-content p {
+      margin: 0 0 16px;
+      font-size: 14px;
+      color: #5f6368;
+      flex-grow: 1;
+    }
+    .btn {
+      padding: 8px;
+      margin: 4px 0;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      color: white;
+    }
+    .btn-delete {
+      background: #d93025;
+    }
+    .btn-delete:hover {
+      background: #a52714;
+    }
+    .btn-edit {
+      background: #f9ab00;
+    }
+    .btn-edit:hover {
+      background: #c57a00;
+    }
+    input[type="file"] {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1 class="main-title">FireReps Spreadsheet</h1>
-    <button id="login-btn">Zaloguj</button>
-  </header>
-
+  <h1 style="text-align: center;">Panel administracyjny - Repliki</h1>
   <main id="item-container"></main>
 
-  <div class="add-card" id="add-card" style="display:none;cursor:pointer;margin:20px">
-    <div style="font-size:48px">+</div>
-    <div>dodaj produkt</div>
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-  <!-- modal dodawania -->
-  <div id="add-modal" class="modal">
-    <div class="modal-content">
-      <h2>Dodaj nowy produkt</h2>
-      <input type="text" id="item-name" placeholder="nazwa" />
-      <textarea id="item-desc" placeholder="opis"></textarea>
-      <input type="text" id="item-link" placeholder="link (opcjonalnie)" />
-      <input type="text" id="item-image-url" placeholder="url do zdjecia" />
-      <div style="text-align:right">
-        <button id="cancel-add" class="btn-cancel">anuluj</button>
-        <button id="confirm-add" class="btn-add">dodaj</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- modal potwierdzenia -->
-  <div id="delete-modal" class="modal">
-    <div class="modal-content">
-      <p>Czy na pewno chcesz usunąć ten produkt?</p>
-      <div style="text-align:right">
-        <button id="cancel-delete" class="btn-cancel">nie</button>
-        <button id="confirm-delete" class="btn-delete-confirm">tak</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
-  <script>
-    // tu podstaw swoje dane z Firebase:
     const firebaseConfig = {
       apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
       authDomain: "spridszit-firerepy.firebaseapp.com",
@@ -77,97 +94,83 @@
       messagingSenderId: "963006920352",
       appId: "1:963006920352:web:58538b879f004c02873bc5"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const itemsRef = db.ref('items');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const itemsRef = ref(db, 'items');
 
-    const loginBtn = document.getElementById('login-btn'),
-          addCard = document.getElementById('add-card'),
-          addModal = document.getElementById('add-modal'),
-          deleteModal = document.getElementById('delete-modal'),
-          cancelAdd = document.getElementById('cancel-add'),
-          confirmAdd = document.getElementById('confirm-add'),
-          cancelDelete = document.getElementById('cancel-delete'),
-          confirmDelete = document.getElementById('confirm-delete'),
-          container = document.getElementById('item-container');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-    let isAdmin = false, deleteKey = null;
-
-    function showModal(m){ m.style.display='flex'; document.body.style.filter='blur(3px)'; }
-    function hideModal(m){ m.style.display='none'; document.body.style.filter='none'; }
-    function renderItems(){
+    function renderItems(data) {
+      const container = document.getElementById('item-container');
       container.innerHTML = '';
-      itemsRef.once('value', snap => {
-        snap.forEach(ch => {
-          const it = ch.val(), key = ch.key;
-          const card = document.createElement('div');
-          card.className = 'item-card';
-          card.innerHTML = `
-            <img src="${it.image}" alt="${it.name}">
-            <div class="card-content">
-              <h3>${it.name}</h3>
-              <p>${it.description||''}</p>
-              ${it.link?`<a class="buy-btn" href="${it.link}" target="_blank">kup</a>`:''}
-            </div>`;
-          if(isAdmin){
-            const btn = document.createElement('button');
-            btn.className = 'delete-btn';
-            btn.textContent = 'usuń';
-            btn.onclick = () => { deleteKey = key; showModal(deleteModal); };
-            card.appendChild(btn);
-          }
-          container.appendChild(card);
-        });
-        if(isAdmin) addCard.style.display = 'block'; else addCard.style.display = 'none';
+      if (!data) return;
+      Object.entries(data).forEach(([key, item]) => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        const img = document.createElement('img');
+        img.src = item.image;
+        card.appendChild(img);
+
+        const cont = document.createElement('div');
+        cont.className = 'card-content';
+        const h3 = document.createElement('h3');
+        h3.textContent = item.name;
+        const p = document.createElement('p');
+        p.textContent = item.description;
+        cont.append(h3, p);
+
+        if (isAdmin) {
+          const del = document.createElement('button');
+          del.textContent = 'Usuń przedmiot';
+          del.className = 'btn btn-delete';
+          del.onclick = () => {
+            if (confirm('Czy na pewno chcesz usunąć ten przedmiot?')) {
+              remove(ref(db, 'items/' + key));
+            }
+          };
+
+          const edit = document.createElement('button');
+          edit.textContent = 'Edytuj przedmiot';
+          edit.className = 'btn btn-edit';
+          edit.onclick = () => {
+            const newName = prompt('Podaj nową nazwę:', item.name);
+            const newDesc = prompt('Podaj nowy opis:', item.description);
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = () => {
+              const file = input.files[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                  const newImg = e.target.result;
+                  update(ref(db, 'items/' + key), {
+                    name: newName,
+                    description: newDesc,
+                    image: newImg
+                  });
+                };
+                reader.readAsDataURL(file);
+              } else {
+                update(ref(db, 'items/' + key), {
+                  name: newName,
+                  description: newDesc
+                });
+              }
+            };
+            input.click();
+          };
+          cont.append(edit, del);
+        }
+
+        card.append(cont);
+        container.appendChild(card);
       });
     }
 
-    loginBtn.onclick = () => {
-      if(!isAdmin){
-        const l = prompt('login'), p = prompt('haslo');
-        if(l==='ifirelovereps' && p==='fi123re987re098ps321'){
-          isAdmin = true;
-          loginBtn.textContent = 'wyloguj';
-        } else {
-          alert('bledne dane');
-          return;
-        }
-      } else {
-        isAdmin = false;
-        loginBtn.textContent = 'zaloguj';
-      }
-      renderItems();
-    };
-
-    addCard.onclick = () => { showModal(addModal); };
-
-    cancelAdd.onclick = () => { hideModal(addModal); };
-    confirmAdd.onclick = () => {
-      const n = document.getElementById('item-name').value.trim(),
-            d = document.getElementById('item-desc').value.trim(),
-            l = document.getElementById('item-link').value.trim(),
-            u = document.getElementById('item-image-url').value.trim();
-      if(!n || !u){ alert('wypelnij nazwe i url'); return; }
-      itemsRef.push({ name: n, description: d, link: l, image: u }, err => {
-        if(err) alert('blad zapisu');
-        else {
-          hideModal(addModal);
-          renderItems();
-        }
-      });
-    };
-
-    cancelDelete.onclick = () => { deleteKey = null; hideModal(deleteModal); };
-    confirmDelete.onclick = () => {
-      if(deleteKey){
-        itemsRef.child(deleteKey).remove(err => {
-          if(err) alert('blad usuniecia');
-          else { deleteKey = null; hideModal(deleteModal); renderItems(); }
-        });
-      }
-    };
-
-    renderItems();
+    onValue(itemsRef, snapshot => {
+      renderItems(snapshot.val());
+    });
   </script>
 </body>
 </html>
