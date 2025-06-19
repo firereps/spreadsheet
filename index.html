@@ -50,7 +50,16 @@
   .item-delete-button { position: absolute; top: 8px; left: 8px; background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background-color 0.2s; }
   .item-delete-button:hover { background-color: #dc2626; }
 
-  .modal-overlay { display: none; position: fixed; z-index: 1100; inset: 0; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; }
+  /* --- POPRAWIONY STYL MODALI --- */
+  .modal-overlay {
+    display: none; /* Domyślnie ukryty! */
+    position: fixed;
+    z-index: 1100;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    justify-content: center;
+    align-items: center;
+  }
   .modal-content { background: var(--primary-color); padding: 25px 30px; border-radius: 12px; width: 380px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
   .modal-content h2 { color: var(--text-color); font-weight: 800; font-size: 22px; margin: 0 0 20px 0; text-align: center; }
   .modal-content .form-group { margin-bottom: 15px; }
@@ -139,7 +148,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const firebaseConfig = { /* Twoja konfiguracja Firebase */ };
+// Tu wklej swoją konfigurację Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+  authDomain: "spridszit-firerepy.firebaseapp.com",
+  databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "spridszit-firerepy",
+  storageBucket: "spridszit-firerepy.appspot.com",
+  messagingSenderId: "963006920352",
+  appId: "1:963006920352:web:58538b879f004c02873bc5"
+};
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -163,8 +182,8 @@ const loginSubmit = document.getElementById("login-submit"), addItemSubmit = doc
 const addItemCancel = document.getElementById("add-item-cancel"), addItemLoader = document.getElementById("add-item-loader");
 
 // Funkcje pomocnicze
-const showModal = (modal) => modal.style.display = "flex";
-const hideModal = (modal) => modal.style.display = "none";
+const showModal = (modal) => { modal.style.display = "flex"; };
+const hideModal = (modal) => { modal.style.display = "none"; };
 
 // Logika UI
 const updateUIForAdmin = () => { loginButton.style.display = "none"; addItemButton.style.display = "inline-block"; logoutButton.style.display = "inline-block"; displayFilteredItems(); };
@@ -204,21 +223,17 @@ function renderItems(itemsToRender) {
 function displayFilteredItems() {
     let filteredItems = { ...allItems };
 
-    // 1. Filtrowanie po tagu
     if (activeFilter !== 'all') {
         filteredItems = Object.fromEntries(
-            Object.entries(filteredItems).filter(([key, item]) => item.tags && item.tags[activeFilter])
+            Object.entries(filteredItems).filter(([, item]) => item.tags && item.tags[activeFilter])
         );
     }
-
-    // 2. Filtrowanie po nazwie
     if (searchTerm) {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
         filteredItems = Object.fromEntries(
-            Object.entries(filteredItems).filter(([key, item]) => item.name.toLowerCase().includes(lowerCaseSearchTerm))
+            Object.entries(filteredItems).filter(([, item]) => item.name.toLowerCase().includes(lowerCaseSearchTerm))
         );
     }
-    
     renderItems(filteredItems);
 }
 
@@ -226,7 +241,6 @@ function displayFilteredItems() {
 loginButton.onclick = () => showModal(loginModal);
 logoutButton.onclick = () => { isAdmin = false; updateUIForGuest(); };
 addItemButton.onclick = () => {
-    // Resetuj formularz przed pokazaniem
     document.getElementById('item-name-input').value = ''; document.getElementById('item-desc-input').value = '';
     document.getElementById('item-price-input').value = ''; document.getElementById('item-link-input').value = '';
     document.getElementById('item-image-input').value = ''; document.getElementById('tag-new').checked = false;
@@ -248,79 +262,47 @@ addItemSubmit.onclick = async () => {
   const price = document.getElementById('item-price-input').value.trim();
   const purchaseLink = document.getElementById('item-link-input').value.trim();
   const image = document.getElementById('item-image-input').value.trim();
-
   if (!name || !price || !purchaseLink || !image) { alert("Wypełnij wymagane pola: Nazwa, Cena, Link do zakupu, Link do zdjęcia."); return; }
   
   const newItemData = {
     name, description: document.getElementById('item-desc-input').value.trim(),
     price: Number(price), purchaseLink, image,
-    tags: {
-        isNew: document.getElementById('tag-new').checked,
-        isBest: document.getElementById('tag-best').checked,
-        isBudget: document.getElementById('tag-budget').checked,
-    },
+    tags: { isNew: document.getElementById('tag-new').checked, isBest: document.getElementById('tag-best').checked, isBudget: document.getElementById('tag-budget').checked, },
     createdAt: new Date().toISOString()
   };
 
   addItemLoader.style.display = 'flex';
-  try {
-    await set(push(ref(db, 'items')), newItemData);
-    hideModal(addItemModal);
-  } catch (error) { console.error("Błąd:", error); alert("Wystąpił błąd."); } 
+  try { await set(push(ref(db, 'items')), newItemData); hideModal(addItemModal); } 
+  catch (error) { console.error("Błąd:", error); alert("Wystąpił błąd."); } 
   finally { addItemLoader.style.display = 'none'; }
 };
 
-// Event Delegation dla przycisków usuwania
 itemsContainer.onclick = async (e) => {
     if (e.target.classList.contains('item-delete-button')) {
         const key = e.target.dataset.key;
-        if (confirm('Czy na pewno chcesz usunąć ten przedmiot? Tej operacji nie można cofnąć.')) {
-            try {
-                await remove(ref(db, `items/${key}`));
-            } catch (error) {
-                console.error("Błąd usuwania:", error);
-                alert("Nie udało się usunąć przedmiotu.");
-            }
+        if (confirm('Czy na pewno chcesz usunąć ten przedmiot?')) {
+            try { await remove(ref(db, `items/${key}`)); } 
+            catch (error) { console.error("Błąd usuwania:", error); alert("Nie udało się usunąć przedmiotu."); }
         }
     }
 };
 
-// Logika filtrowania i wyszukiwania
-searchInput.addEventListener('input', (e) => {
-    searchTerm = e.target.value.trim();
-    displayFilteredItems();
-});
-
-filterBtn.addEventListener('click', () => {
-    filterDropdown.style.display = filterDropdown.style.display === 'block' ? 'none' : 'block';
-});
-
+searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.trim(); displayFilteredItems(); });
+filterBtn.addEventListener('click', () => { filterDropdown.style.display = filterDropdown.style.display === 'block' ? 'none' : 'block'; });
 filterDropdown.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
-        // Zdejmij klasę 'active' ze wszystkich przycisków
         filterDropdown.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-        // Dodaj klasę 'active' do klikniętego
         e.target.classList.add('active');
         activeFilter = e.target.dataset.filter;
         displayFilteredItems();
-        filterDropdown.style.display = 'none'; // Schowaj menu po wyborze
-    }
-});
-
-// Chowanie menu filtrów po kliknięciu poza nim
-document.addEventListener('click', (e) => {
-    if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
         filterDropdown.style.display = 'none';
     }
 });
+document.addEventListener('click', (e) => { if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) { filterDropdown.style.display = 'none'; } });
 
 // Inicjalizacja
 updateUIForGuest();
-onValue(ref(db, "items"), (snapshot) => {
-    allItems = snapshot.val() || {};
-    displayFilteredItems();
-});
-
+onValue(ref(db, "items"), (snapshot) => { allItems = snapshot.val() || {}; displayFilteredItems(); });
 </script>
 </body>
 </html>
