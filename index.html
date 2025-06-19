@@ -8,241 +8,268 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
 
-<style id="page-styles">
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        margin: 0;
-        background-color: #f0f2f5;
-        color: #1c1e21;
-        transition: filter 0.3s ease-in-out;
-    }
-    body.modal-open { overflow: hidden; }
-    body.modal-open > *:not(.modal) { filter: blur(5px); }
-    header {
-        background-color: #fff;
-        padding: 10px 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-    .main-title {
-        font-family: 'Poppins', sans-serif;
-        font-size: 24px;
-        font-weight: 500;
-        color: #1c1e21;
-        margin: 0;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    #login-btn {
-        padding: 8px 16px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #fff;
-        background-color: #1877f2;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    #login-btn:hover { background-color: #166fe5; }
-    #item-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        padding: 40px 20px;
-    }
-    .item-card {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        width: 300px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.2s, box-shadow 0.2s;
-        position: relative;
-    }
-    .item-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    .item-card img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-    }
-    .card-content {
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-    .card-content h3 {
-        margin: 0 0 10px 0;
-        font-size: 20px;
-        color: #1c1e21;
-    }
-    .card-content p {
-        margin: 0 0 15px 0;
-        font-size: 14px;
-        color: #606770;
-        flex-grow: 1;
-    }
-    .buy-btn {
-        display: block;
-        width: 100%;
-        padding: 10px 0;
-        text-align: center;
-        background-color: #42b72a;
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-        border-radius: 6px;
-        margin-top: auto;
-        transition: background-color 0.2s;
-    }
-    .buy-btn:hover { background-color: #36a420; }
-    .delete-btn {
-        position: absolute;
-        bottom: 50px;
-        width: 90%;
-        margin: 0 5%;
-        padding: 10px 0;
-        background-color: #e74c3c;
-        color: white;
-        font-weight: 600;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        display: none;
-    }
-    .delete-btn.show { display: block; }
-    .add-card {
-        cursor: pointer;
-        border: 2px dashed #a0a0a0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: #606770;
-        background-color: #f7f8fa;
-        width: 300px;
-        height: 300px;
-        border-radius: 8px;
-        transition: background-color 0.2s, border-color 0.2s;
-        display: none;
-    }
-    .add-card.show {
-        display: flex;
-    }
-    .add-card:hover {
-        background-color: #e0e2e5;
-        border-color: #1877f2;
-        color: #1877f2;
-    }
-    .plus-icon {
-        font-size: 80px;
-        font-weight: lighter;
-        line-height: 1;
-        user-select: none;
-    }
-    .add-card h3 {
-        margin-top: 10px;
-        font-weight: 600;
-        font-size: 20px;
-    }
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 200;
-        left: 0; top: 0;
-        width: 100%; height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        align-items: center;
-        justify-content: center;
-    }
-    .modal.show {
-        display: flex;
-    }
-    .modal-content {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        width: 90%;
-        max-width: 500px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-    .modal-content h2 {
-        margin: 0 0 20px 0;
-        font-weight: 700;
-        font-size: 24px;
-        color: #1c1e21;
-    }
-    .modal-content label {
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: #333;
-    }
-    .modal-content input[type="text"],
-    .modal-content textarea,
-    .modal-content input[type="file"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 14px;
-        resize: vertical;
-    }
-    .modal-content textarea {
-        height: 80px;
-    }
-    .modal-buttons {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-    .modal-buttons button {
-        padding: 10px 16px;
-        font-weight: 600;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.2s;
-    }
-    .btn-cancel {
-        background-color: #ccc;
-        color: #333;
-    }
-    .btn-cancel:hover {
-        background-color: #bbb;
-    }
-    .btn-add {
-        background-color: #1877f2;
-        color: #fff;
-    }
-    .btn-add:hover {
-        background-color: #166fe5;
-    }
-    .btn-delete-confirm {
-        background-color: #e74c3c;
-        color: #fff;
-    }
-    .btn-delete-confirm:hover {
-        background-color: #c0392b;
-    }
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+}
+header {
+    background-color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.main-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: #1c1e21;
+    margin: 0;
+}
+#login-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+#login-form input[type="email"],
+#login-form input[type="password"] {
+    padding: 6px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+#login-form button {
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    background-color: #1877f2;
+    color: white;
+    cursor: pointer;
+}
+#login-form button:hover {
+    background-color: #166fe5;
+}
+#logout-btn {
+    display: none;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    background-color: #e74c3c;
+    color: white;
+    cursor: pointer;
+}
+#logout-btn.show {
+    display: inline-block;
+}
+#item-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px 20px;
+}
+.item-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    width: 300px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.item-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.card-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.card-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #1c1e21;
+}
+.card-content p {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #606770;
+    flex-grow: 1;
+}
+.buy-btn {
+    display: block;
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+    background-color: #42b72a;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 6px;
+    margin-top: auto;
+    transition: background-color 0.2s;
+}
+.buy-btn:hover { background-color: #36a420; }
+.delete-btn {
+    position: absolute;
+    bottom: 50px;
+    width: 90%;
+    margin: 0 5%;
+    padding: 10px 0;
+    background-color: #e74c3c;
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: none;
+}
+.delete-btn.show { display: block; }
+.add-card {
+    cursor: pointer;
+    border: 2px dashed #a0a0a0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #606770;
+    background-color: #f7f8fa;
+    width: 300px;
+    height: 300px;
+    border-radius: 8px;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: none;
+}
+.add-card.show {
+    display: flex;
+}
+.add-card:hover {
+    background-color: #e0e2e5;
+    border-color: #1877f2;
+    color: #1877f2;
+}
+.plus-icon {
+    font-size: 80px;
+    font-weight: lighter;
+    line-height: 1;
+    user-select: none;
+}
+.add-card h3 {
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 20px;
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+}
+.modal.show {
+    display: flex;
+}
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.modal-content h2 {
+    margin: 0 0 20px 0;
+    font-weight: 700;
+    font-size: 24px;
+    color: #1c1e21;
+}
+.modal-content label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+.modal-content input[type="text"],
+.modal-content input[type="email"],
+.modal-content input[type="password"],
+.modal-content textarea,
+.modal-content input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    resize: vertical;
+}
+.modal-content textarea {
+    height: 80px;
+}
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.modal-buttons button {
+    padding: 10px 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+.btn-cancel {
+    background-color: #ccc;
+    color: #333;
+}
+.btn-cancel:hover {
+    background-color: #bbb;
+}
+.btn-add {
+    background-color: #1877f2;
+    color: #fff;
+}
+.btn-add:hover {
+    background-color: #166fe5;
+}
+.btn-delete-confirm {
+    background-color: #e74c3c;
+    color: #fff;
+}
+.btn-delete-confirm:hover {
+    background-color: #c0392b;
+}
+.error-msg {
+    color: #e74c3c;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: none;
+}
+.error-msg.show {
+    display: block;
+}
 </style>
 
 </head>
@@ -250,7 +277,12 @@
 
 <header>
     <h1 class="main-title">FireReps Spreadsheet</h1>
-    <button id="login-btn">Zaloguj się jako admin</button>
+    <form id="login-form">
+        <input type="email" id="email" placeholder="Email admina" required />
+        <input type="password" id="password" placeholder="Haslo admina" required />
+        <button type="submit">Zaloguj</button>
+    </form>
+    <button id="logout-btn">Wyloguj</button>
 </header>
 
 <main id="item-container">
@@ -266,6 +298,7 @@
 <div id="add-item-modal" class="modal">
     <div class="modal-content">
         <h2>Dodaj nowy produkt</h2>
+        <div class="error-msg" id="add-error"></div>
         <form id="add-item-form">
             <label for="item-name">Nazwa produktu <span style="color:red">*</span></label>
             <input type="text" id="item-name" required />
@@ -276,8 +309,11 @@
             <label for="item-link">Link do produktu</label>
             <input type="text" id="item-link" placeholder="https://..." />
 
-            <label for="item-image">Zdjęcie produktu <span style="color:red">*</span></label>
-            <input type="file" id="item-image" accept="image/*" required />
+            <label for="item-image-url">URL do zdjęcia (opcjonalne)</label>
+            <input type="text" id="item-image-url" placeholder="https://example.com/image.jpg" />
+
+            <label for="item-image-file">Lub wybierz zdjęcie z komputera</label>
+            <input type="file" id="item-image-file" accept="image/*" />
 
             <div class="modal-buttons">
                 <button type="button" class="btn-cancel" id="cancel-add">Anuluj</button>
@@ -302,13 +338,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
+// firebase config tu wpierdol
 const firebaseConfig = {
     apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
     authDomain: "spridszit-firerepy.firebaseapp.com",
     databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "spridszit-firerepy",
-    storageBucket: "spridszit-firerepy.appspot.com",
+    storageBucket: "spridszit-firerepy.firebasestorage.app",
     messagingSenderId: "963006920352",
     appId: "1:963006920352:web:58538b879f004c02873bc5"
 };
@@ -316,23 +354,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const storage = getStorage(app);
+const auth = getAuth(app);
 
 const itemsRef = ref(db, 'items');
 
 const itemContainer = document.getElementById('item-container');
-const loginBtn = document.getElementById('login-btn');
 const addCard = document.getElementById('add-card');
-
 const addItemModal = document.getElementById('add-item-modal');
 const addItemForm = document.getElementById('add-item-form');
 const cancelAddBtn = document.getElementById('cancel-add');
-
 const deleteConfirmModal = document.getElementById('delete-confirm-modal');
 const cancelDeleteBtn = document.getElementById('cancel-delete');
 const confirmDeleteBtn = document.getElementById('confirm-delete');
+const loginForm = document.getElementById('login-form');
+const logoutBtn = document.getElementById('logout-btn');
 
 let deleteKey = null;
-let isAdmin = false; // start jako zwykly user
+let isAdmin = false;
+let currentUser = null;
 
 function openModal(modal) {
     modal.classList.add('show');
@@ -406,89 +445,157 @@ function refreshItems() {
     });
 }
 
-// przycisk zaloguj/wyloguj admina
-loginBtn.addEventListener('click', () => {
-    if(!isAdmin) {
-        isAdmin = true;
-        loginBtn.textContent = "Wyloguj się z admina";
-        addCard.classList.add('show');
-    } else {
-        isAdmin = false;
-        loginBtn.textContent = "Zaloguj się jako admin";
-        addCard.classList.remove('show');
-        closeModal(addItemModal);
-        closeModal(deleteConfirmModal);
+// logowanie
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        currentUser = userCredential.user;
+        if(email === "admin@example.com") { // zmien na swoj admin email
+            isAdmin = true;
+            addCard.classList.add('show');
+            loginForm.style.display = 'none';
+            logoutBtn.classList.add('show');
+        } else {
+            isAdmin = false;
+            addCard.classList.remove('show');
+        }
+        refreshItems();
+    } catch (error) {
+        alert('Bledny email lub haslo');
     }
+});
+
+logoutBtn.addEventListener('click', async () => {
+    await signOut(auth);
+    currentUser = null;
+    isAdmin = false;
+    addCard.classList.remove('show');
+    loginForm.style.display = 'flex';
+    logoutBtn.classList.remove('show');
     refreshItems();
 });
 
-// otwieranie modal dodawania
 addCard.addEventListener('click', () => {
     openModal(addItemModal);
 });
 
-// anuluj dodawanie
 cancelAddBtn.addEventListener('click', () => {
     addItemForm.reset();
     closeModal(addItemModal);
 });
 
-// obsluga dodawania
 addItemForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const name = document.getElementById('item-name').value.trim();
     const desc = document.getElementById('item-desc').value.trim();
     const link = document.getElementById('item-link').value.trim();
-    const imageInput = document.getElementById('item-image');
+    const imageUrlInput = document.getElementById('item-image-url').value.trim();
+    const imageFileInput = document.getElementById('item-image-file');
 
-    if (!name || !imageInput.files.length) {
-        alert('Wypełnij wymagane pola oraz dodaj zdjęcie');
+    if(!name) {
+        showAddError('Nazwa produktu jest wymagana');
         return;
     }
 
-    const file = imageInput.files[0];
-    const fileRef = sref(storage, 'items/' + Date.now() + '_' + file.name);
+    if(!imageUrlInput && imageFileInput.files.length === 0) {
+        showAddError('Musisz podać URL zdjęcia lub wybrać plik');
+        return;
+    }
+
+    showAddError(''); // czysci error
+
+    let imageUrl = '';
+
+    if(imageUrlInput) {
+        // jesli jest url, bierzemy ten
+        imageUrl = imageUrlInput;
+    } else {
+        // inaczej wrzucamy plik na storage
+        const file = imageFileInput.files[0];
+        const fileRef = sref(storage, 'items/' + Date.now() + '_' + file.name);
+        try {
+            await uploadBytes(fileRef, file);
+            imageUrl = await getDownloadURL(fileRef);
+        } catch (err) {
+            showAddError('Blad uploadu zdjecia');
+            return;
+        }
+    }
+
+    const newItem = {
+        name,
+        description: desc,
+        link,
+        image: imageUrl
+    };
 
     try {
-        await uploadBytes(fileRef, file);
-        const imageUrl = await getDownloadURL(fileRef);
-
-        const newItem = {
-            name,
-            description: desc,
-            link,
-            image: imageUrl
-        };
-
         await push(itemsRef, newItem);
-
         addItemForm.reset();
         closeModal(addItemModal);
-
-    } catch (error) {
-        alert('Nie udało się dodać produktu. Spróbuj ponownie.');
-        console.error(error);
+        refreshItems();
+    } catch (err) {
+        showAddError('Blad dodawania produktu');
     }
 });
 
-// anuluj usuwanie
+function showAddError(msg) {
+    const errorDiv = document.getElementById('add-error');
+    if(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.classList.add('show');
+    } else {
+        errorDiv.textContent = '';
+        errorDiv.classList.remove('show');
+    }
+}
+
+// usuwanie
+
 cancelDeleteBtn.addEventListener('click', () => {
     deleteKey = null;
     closeModal(deleteConfirmModal);
 });
 
-// potwierdz usuwanie
 confirmDeleteBtn.addEventListener('click', async () => {
     if(deleteKey) {
         await remove(ref(db, 'items/' + deleteKey));
         deleteKey = null;
         closeModal(deleteConfirmModal);
+        refreshItems();
     }
 });
 
-refreshItems();
+onAuthStateChanged(auth, user => {
+    if(user) {
+        currentUser = user;
+        if(user.email === "admin@example.com") { // zmien tu email admina
+            isAdmin = true;
+            addCard.classList.add('show');
+            loginForm.style.display = 'none';
+            logoutBtn.classList.add('show');
+        } else {
+            isAdmin = false;
+            addCard.classList.remove('show');
+            loginForm.style.display = 'flex';
+            logoutBtn.classList.remove('show');
+        }
+    } else {
+        isAdmin = false;
+        addCard.classList.remove('show');
+        loginForm.style.display = 'flex';
+        logoutBtn.classList.remove('show');
+        refreshItems();
+    }
+    refreshItems();
+});
 
+refreshItems();
 </script>
 
 </body>
