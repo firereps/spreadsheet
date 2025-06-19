@@ -5,139 +5,361 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>FireReps Spreadsheet</title>
 <style>
-  /* ogolny styl */
+  :root {
+    --background-color: #0d1117;
+    --primary-color: #161b22;
+    --border-color: #30363d;
+    --text-color: #c9d1d9;
+    --text-color-muted: #8b949e;
+    --accent-color: #23c4e4; /* Cyan/Teal color from image */
+    
+    --tag-new-bg: #e36209; /* Orange for NEW tag */
+    --tag-best-bg: #dcb32a; /* Gold for BEST tag */
+    --tag-budget-bg: #2ea043; /* Green for BUDGET tag */
+  }
+
+  /* --- Ogólny styl --- */
   body {
     margin: 0;
-    background: #0d1117;
-    font-family: 'Arial Black', Arial, sans-serif;
-    color: #c9d1d9;
+    background-color: var(--background-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--text-color);
   }
 
-  /* header z napisem zamiast logo */
-  header {
-    background: #161b22;
-    height: 50px;
+  /* --- Nagłówek --- */
+  .main-header {
+    background-color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 24px;
+    height: 60px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 22px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    user-select: none;
-    border-bottom: 1px solid #30363d;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
 
-  /* przycisk zaloguj sie */
-  #login-button {
-    position: fixed;
-    top: 12px;
-    right: 15px;
-    background: #238636;
+  .header-title {
+    font-size: 20px;
+    font-weight: 600;
+    user-select: none;
+  }
+
+  .header-actions button {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
     border: none;
-    color: #c9d1d9;
-    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
     font-size: 14px;
-    padding: 10px 20px;
-    border-radius: 15px;
     cursor: pointer;
-    user-select: none;
-    transition: background 0.3s ease;
-    z-index: 1000;
+    transition: filter 0.2s ease;
   }
-  #login-button:hover {
-    background: #2ea043;
+  .header-actions button:hover {
+    filter: brightness(1.1);
+  }
+  .header-actions button#logout-button {
+    background-color: #8b0000;
+    color: white;
+    margin-left: 10px;
+  }
+  .header-actions button#logout-button:hover {
+    background-color: #a00b0b;
   }
 
-  #logout-button {
-    position: fixed;
-    top: 12px;
-    right: 15px;
-    background: #8b0000;
+  /* --- Kontrolki filtrów i wyszukiwania --- */
+  .controls-container {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .search-filter-bar {
+    display: flex;
+    gap: 12px;
+  }
+
+  .filter-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--accent-color);
+    color: var(--primary-color);
     border: none;
-    color: #fff;
-    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
     font-size: 14px;
-    padding: 10px 20px;
-    border-radius: 15px;
     cursor: pointer;
-    user-select: none;
-    display: none;
-    z-index: 1000;
+    transition: filter 0.2s ease;
   }
-  #logout-button:hover {
-    background: #a00b0b;
+  .filter-button:hover {
+    filter: brightness(1.1);
   }
 
-  /* kontener na itemy - flex, grid styl */
+  .search-input {
+    flex-grow: 1;
+    background-color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  .search-input::placeholder {
+    color: var(--text-color-muted);
+  }
+
+  .category-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px; /* For scrollbar */
+    border-bottom: 1px solid var(--border-color);
+  }
+  .category-tabs::-webkit-scrollbar {
+    height: 4px;
+  }
+  .category-tabs::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+  }
+  
+  .category-tabs button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .category-tabs button:hover {
+    background-color: var(--border-color);
+  }
+  .category-tabs button.active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    font-weight: 600;
+  }
+
+  /* --- Kontener na itemy --- */
   #items-container {
-    max-width: 1200px;
-    margin: 60px auto 40px;
+    max-width: 1400px;
+    margin: 24px auto 40px;
     display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(210px,1fr));
-    gap: 18px;
-    padding: 0 15px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 0 24px;
   }
 
-  /* pojedynczy item card */
+  /* --- Karta produktu --- */
   .item-card {
-    background: #161b22;
-    border-radius: 15px;
-    box-shadow: 0 0 12px #238636aa;
+    background: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     user-select: none;
-    transition: box-shadow 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
   }
   .item-card:hover {
-    box-shadow: 0 0 20px #2ea043cc;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   }
 
-  /* obrazek w item */
+  .item-image-wrapper {
+      position: relative;
+      background-color: #fff;
+  }
+  
   .item-card img {
     width: 100%;
     aspect-ratio: 1 / 1;
-    object-fit: contain;
-    background: #0d1117;
-    padding: 10px;
+    object-fit: cover;
+    display: block;
   }
-
-  /* tekst nazwy itemu */
-  .item-title {
-    font-weight: 800;
-    font-size: 18px;
-    padding: 8px 15px 0 15px;
-    min-height: 48px;
-    color: #c9d1d9;
+  
+  .card-badges {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
   }
-
-  /* cena pod nazwa */
-  .item-price {
+  
+  .badge {
+    color: white;
+    padding: 2px 8px;
+    font-size: 10px;
     font-weight: 700;
-    font-size: 16px;
-    padding: 2px 15px 10px 15px;
-    color: #238636;
+    border-radius: 4px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .badge-new { background-color: var(--tag-new-bg); }
+  .badge-best { background-color: var(--tag-best-bg); }
+  .badge-budget { background-color: var(--tag-budget-bg); }
+
+
+  .item-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
   }
 
+  .item-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-color);
+    margin-bottom: 8px;
+    min-height: 40px; /* 2 lines */
+  }
+
+  .item-price {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .item-desc-button {
+    margin-top: auto; /* Push to bottom */
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color-muted);
+    padding: 8px;
+    font-size: 14px;
+    width: 100%;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .item-desc-button:hover {
+    background-color: var(--border-color);
+    color: var(--text-color);
+  }
+  .item-desc-button.no-desc {
+      cursor: default;
+      color: #555;
+  }
+  .item-desc-button.no-desc:hover {
+      background-color: transparent;
+  }
+
+  /* --- Modal logowania (bez zmian w stylu) --- */
+  #login-modal {
+    display:none; 
+    position:fixed; 
+    z-index:1100; 
+    inset:0; 
+    background:rgba(0,0,0,0.75); 
+    display:flex; 
+    justify-content:center; 
+    align-items:center;
+  }
+  .login-modal-content {
+    background:#161b22; 
+    padding:25px 30px; 
+    border-radius: 12px; 
+    width:320px; 
+    box-shadow: 0 0 20px #238636cc;
+  }
+  .login-modal-content h2 {
+    color:#c9d1d9; 
+    font-weight: 900; 
+    font-size: 24px; 
+    margin:0 0 15px 0; 
+    text-align:center;
+  }
+  .login-modal-content input {
+    width: calc(100% - 20px); 
+    margin-bottom:12px; 
+    padding:10px; 
+    border-radius:8px; 
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size:16px;
+  }
+  .login-modal-content button {
+    width:100%; 
+    background:#238636; 
+    border:none; 
+    padding:12px; 
+    border-radius:12px; 
+    font-weight:700; 
+    color:#c9d1d9; 
+    cursor:pointer; 
+    font-size:18px;
+  }
 </style>
 </head>
 <body>
 
-<header>FireReps Spreadsheet</header>
+<header class="main-header">
+  <div class="header-title">FireReps Spreadsheet</div>
+  <div class="header-actions">
+    <button id="login-button">Zaloguj się</button>
+    <button id="add-item-button" style="display:none;">Dodaj przedmiot</button>
+    <button id="logout-button" style="display:none;">Wyloguj się</button>
+  </div>
+</header>
 
-<button id="login-button">Zaloguj sie</button>
-<button id="logout-button">Wyloguj sie</button>
+<main>
+  <div class="controls-container">
+    <div class="search-filter-bar">
+      <button class="filter-button">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 4h12M4 8h8M6.5 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        <span>Filtry</span>
+      </button>
+      <input type="search" class="search-input" placeholder="Wyszukaj po nazwie...">
+    </div>
+    <div class="category-tabs">
+        <button class="active">Wszystkie</button>
+        <button>Belts</button>
+        <button>Electronics</button>
+        <button>Headwear</button>
+        <button>Hoodies</button>
+        <button>Jackets</button>
+        <button>Jewelry</button>
+        <button>Others</button>
+        <button>Pants</button>
+        <button>Shoes</button>
+        <button>Shorts</button>
+        <button>Sweaters</button>
+    </div>
+  </div>
 
-<div id="items-container"></div>
+  <div id="items-container"></div>
+</main>
+
 
 <!-- modal logowania -->
-<div id="login-modal" style="display:none; position:fixed; z-index:1100; inset:0; background:rgba(0,0,0,0.75); display:flex; justify-content:center; align-items:center;">
-  <div style="background:#161b22; padding:25px 30px; border-radius: 12px; width:320px; box-shadow: 0 0 20px #238636cc;">
-    <h2 style="color:#c9d1d9; font-weight: 900; font-size: 24px; margin:0 0 15px 0; text-align:center;">Logowanie Admin</h2>
-    <input id="login-username" type="text" placeholder="Nazwa uzytkownika" style="width:100%; margin-bottom:12px; padding:10px; border-radius:8px; border:none; font-size:16px;" />
-    <input id="login-password" type="password" placeholder="Haslo" style="width:100%; margin-bottom:15px; padding:10px; border-radius:8px; border:none; font-size:16px;" />
-    <button id="login-submit" style="width:100%; background:#238636; border:none; padding:12px; border-radius:12px; font-weight:700; color:#c9d1d9; cursor:pointer; font-size:18px;">Zaloguj</button>
+<div id="login-modal">
+  <div class="login-modal-content">
+    <h2>Logowanie Admin</h2>
+    <input id="login-username" type="text" placeholder="Nazwa uzytkownika" />
+    <input id="login-password" type="password" placeholder="Haslo" />
+    <button id="login-submit">Zaloguj</button>
   </div>
 </div>
 
@@ -161,6 +383,7 @@ const db = getDatabase(app);
 
 const loginButton = document.getElementById("login-button");
 const logoutButton = document.getElementById("logout-button");
+const addItemButton = document.getElementById("add-item-button");
 const loginModal = document.getElementById("login-modal");
 const loginSubmit = document.getElementById("login-submit");
 const loginUsername = document.getElementById("login-username");
@@ -184,45 +407,92 @@ function hideLoginModal() {
 
 function updateUIForAdmin() {
   loginButton.style.display = "none";
-  logoutButton.style.display = "block";
+  logoutButton.style.display = "inline-block";
+  addItemButton.style.display = "inline-block";
 }
 function updateUIForGuest() {
-  loginButton.style.display = "block";
+  loginButton.style.display = "inline-block";
   logoutButton.style.display = "none";
+  addItemButton.style.display = "none";
 }
 
 function renderItems(items) {
   itemsContainer.innerHTML = "";
+  // Ikony SVG jako stringi
+  const checkIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 7.5L9 18L4.5 13.5" stroke="#23c4e4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const infoIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+
   for(const key in items) {
     const item = items[key];
     const card = document.createElement("div");
     card.className = "item-card";
 
+    // --- Obrazek i tagi ---
+    const imageWrapper = document.createElement('div');
+    imageWrapper.className = 'item-image-wrapper';
+    
     if(item.image) {
       const img = document.createElement("img");
       img.src = item.image;
       img.alt = item.name;
-      card.appendChild(img);
+      img.loading = 'lazy';
+      imageWrapper.appendChild(img);
     }
+    
+    const badgesContainer = document.createElement('div');
+    badgesContainer.className = 'card-badges';
+
+    // UWAGA: Aby tagi się wyświetlały, w bazie danych Firebase
+    // dany przedmiot musi mieć atrybut np. "isNew": true, "isBest": true itd.
+    if(item.isNew) {
+        const newBadge = document.createElement('span');
+        newBadge.className = 'badge badge-new';
+        newBadge.innerHTML = `⭐ NEW`;
+        badgesContainer.appendChild(newBadge);
+    }
+    if(item.isBest) {
+        const bestBadge = document.createElement('span');
+        bestBadge.className = 'badge badge-best';
+        bestBadge.innerHTML = `⭐ BEST`;
+        badgesContainer.appendChild(bestBadge);
+    }
+    if(item.isBudget) {
+        const budgetBadge = document.createElement('span');
+        budgetBadge.className = 'badge badge-budget';
+        budgetBadge.innerHTML = `$ BUDGET`;
+        badgesContainer.appendChild(budgetBadge);
+    }
+    imageWrapper.appendChild(badgesContainer);
+    card.appendChild(imageWrapper);
+    
+    // --- Informacje o produkcie ---
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'item-info';
 
     const title = document.createElement("div");
     title.className = "item-title";
     title.textContent = item.name;
-    card.appendChild(title);
+    infoDiv.appendChild(title);
 
     if(item.price) {
       const price = document.createElement("div");
       price.className = "item-price";
-      price.textContent = item.price + " PLN";
-      card.appendChild(price);
-    } else if(item.description) {
-      const desc = document.createElement("div");
-      desc.className = "item-price";
-      desc.style.color = "#8b949e";
-      desc.textContent = item.description;
-      card.appendChild(desc);
+      price.innerHTML = `${item.price} PLN ${checkIcon}`;
+      infoDiv.appendChild(price);
     }
+    
+    const descButton = document.createElement('button');
+    descButton.className = 'item-desc-button';
+    // Przykładowa logika dla opisu. Zmień "Brak opisu" na to, co jest w Twojej bazie
+    if(item.description && item.description !== 'Brak opisu') {
+        descButton.innerHTML = `${infoIcon} Pokaż opis`;
+    } else {
+        descButton.innerHTML = `${infoIcon} Brak opisu`;
+        descButton.classList.add('no-desc');
+    }
+    infoDiv.appendChild(descButton);
 
+    card.appendChild(infoDiv);
     itemsContainer.appendChild(card);
   }
 }
@@ -231,18 +501,27 @@ function fetchAndRenderItems() {
   const itemsRef = ref(db, "items");
   onValue(itemsRef, (snapshot) => {
     const data = snapshot.val() || {};
+    // Symulacja danych tagów dla celów demonstracyjnych (usuń to, jeśli masz dane w Firebase)
+    if(data['-Nwg7S47-WfXm26rN0zU']) data['-Nwg7S47-WfXm26rN0zU'].isNew = true, data['-Nwg7S47-WfXm26rN0zU'].isBest = true; // New Balance
+    if(data['-Nwg7S4r8-eG0hW7_XfX']) data['-Nwg7S4r8-eG0hW7_XfX'].isNew = true, data['-Nwg7S4r8-eG0hW7_XfX'].isBest = true; // Puma
+    if(data['-Nwg7S5E-Hj4b1iP-K1d']) data['-Nwg7S5E-Hj4b1iP-K1d'].isNew = true, data['-Nwg7S5E-Hj4b1iP-K1d'].isBudget = true; // Golden Goose
+    if(data['-Nwg7S7I5B-c0oM0gVvV']) data['-Nwg7S7I5B-c0oM0gVvV'].isBest = true; // Chomiki
+    
     renderItems(data);
   });
 }
 
-loginButton.onclick = () => {
-  showLoginModal();
-};
+loginButton.onclick = showLoginModal;
 
 logoutButton.onclick = () => {
   isAdmin = false;
   updateUIForGuest();
-  fetchAndRenderItems();
+  // Możesz tu odświeżyć listę, jeśli dla gości i adminów jest inna
+};
+
+addItemButton.onclick = () => {
+    // Tutaj możesz dodać logikę otwierania modala/strony do dodawania przedmiotów
+    alert("Funkcjonalność 'Dodaj przedmiot' do zaimplementowania!");
 };
 
 loginSubmit.onclick = () => {
@@ -252,9 +531,9 @@ loginSubmit.onclick = () => {
     isAdmin = true;
     hideLoginModal();
     updateUIForAdmin();
-    fetchAndRenderItems();
+    // Możesz tu odświeżyć listę, jeśli dla adminów ma być inna
   } else {
-    alert("niepoprawny login lub haslo");
+    alert("Niepoprawny login lub hasło");
   }
 };
 
@@ -262,6 +541,7 @@ loginModal.onclick = (e) => {
   if(e.target === loginModal) hideLoginModal();
 };
 
+// Inicjalizacja
 updateUIForGuest();
 fetchAndRenderItems();
 
