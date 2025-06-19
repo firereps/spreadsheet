@@ -6,96 +6,36 @@
 <title>FireReps Spreadsheet</title>
 <style>
   :root {
-    --background-color: #111827; /* Ciemniejszy szary */
-    --primary-color: #1F2937; /* Ciemny szary */
-    --border-color: #374151;
-    --text-color: #F9FAFB;
-    --text-color-muted: #9CA3AF;
-    --accent-color: #DC2626; /* Czerwony */
-    --accent-hover-color: #B91C1C; /* Ciemniejszy czerwony */
-    
-    --tag-new-bg: #e36209;
-    --tag-best-bg: #dcb32a;
+    --background-color: #111827; --primary-color: #1F2937; --border-color: #374151;
+    --text-color: #F9FAFB; --text-color-muted: #9CA3AF; --accent-color: #DC2626;
+    --accent-hover-color: #B91C1C; --tag-new-bg: #e36209; --tag-best-bg: #dcb32a;
     --tag-budget-bg: #2ea043;
   }
-
-  body {
-    margin: 0;
-    background-color: var(--background-color);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    color: var(--text-color);
-  }
-
-  .main-header {
-    background-color: var(--primary-color);
-    border-bottom: 1px solid var(--border-color);
-    padding: 0 24px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
+  body { margin: 0; background-color: var(--background-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text-color); }
+  .main-header { background-color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .header-title { font-size: 20px; font-weight: 600; user-select: none; }
-  .header-actions button {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
+  .header-actions button { background-color: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background-color 0.2s ease; }
   .header-actions button:hover { background-color: var(--accent-hover-color); }
   .header-actions button#logout-button { background-color: #4B5563; margin-left: 10px; }
   .header-actions button#logout-button:hover { background-color: #374151; }
 
-  .controls-container { padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
-  .search-filter-bar { display: flex; gap: 12px; }
-  .filter-button {
-    display: flex; align-items: center; gap: 8px; background-color: var(--accent-color);
-    color: white; border: none; padding: 10px 16px; border-radius: 6px;
-    font-weight: 600; font-size: 14px; cursor: pointer; transition: background-color 0.2s ease;
-  }
+  .controls-container { padding: 16px 24px; display: flex; gap: 12px; }
+  .filter-container { position: relative; }
+  .filter-button { display: flex; align-items: center; gap: 8px; background-color: var(--accent-color); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background-color 0.2s ease; }
   .filter-button:hover { background-color: var(--accent-hover-color); }
-  .search-input {
-    flex-grow: 1; background-color: var(--primary-color); border: 1px solid var(--border-color);
-    border-radius: 6px; color: var(--text-color); padding: 0 12px; font-size: 14px;
-  }
+  .filter-dropdown { display: none; position: absolute; top: 110%; left: 0; background-color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 6px; z-index: 110; min-width: 150px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .filter-dropdown button { display: block; width: 100%; padding: 10px 12px; background: none; border: none; color: var(--text-color); text-align: left; cursor: pointer; }
+  .filter-dropdown button:hover { background-color: var(--border-color); }
+  .filter-dropdown button.active { background-color: var(--accent-color); color: white; font-weight: 600; }
+  .search-input { flex-grow: 1; background-color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); padding: 0 12px; font-size: 14px; }
   .search-input::placeholder { color: var(--text-color-muted); }
 
-  .category-tabs {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);
-  }
-  .category-tabs::-webkit-scrollbar { height: 4px; }
-  .category-tabs::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
-  .category-tabs button {
-    background-color: var(--primary-color); color: var(--text-color); border: 1px solid var(--border-color);
-    padding: 8px 16px; border-radius: 16px; font-size: 14px; white-space: nowrap; cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-  }
-  .category-tabs button:hover { background-color: var(--border-color); }
-  .category-tabs button.active { color: var(--accent-color); border-color: var(--accent-color); font-weight: 600; }
-
-  #items-container {
-    max-width: 1400px; margin: 24px auto 40px; display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 0 24px;
-  }
-
-  .item-card {
-    background: var(--primary-color); border: 1px solid var(--border-color); border-radius: 8px;
-    overflow: hidden; display: flex; flex-direction: column; user-select: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
-  }
+  #items-container { max-width: 1400px; margin: 24px auto 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 0 24px; }
+  .item-card { background: var(--primary-color); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; user-select: none; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; }
   .item-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
   .item-image-wrapper { position: relative; background-color: #fff; }
   .item-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
-  .card-badges { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; }
+  .card-badges { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 4px; }
   .badge { color: white; padding: 2px 8px; font-size: 10px; font-weight: 700; border-radius: 4px; text-transform: uppercase; }
   .badge-new { background-color: var(--tag-new-bg); }
   .badge-best { background-color: var(--tag-best-bg); }
@@ -104,48 +44,29 @@
   .item-title { font-weight: 600; font-size: 16px; color: var(--text-color); margin-bottom: 4px; }
   .item-description { font-size: 12px; color: var(--text-color-muted); margin-bottom: 8px; min-height: 16px; }
   .item-price { font-weight: 600; font-size: 16px; color: var(--text-color); margin-bottom: 12px; }
-  .item-buy-button {
-    margin-top: auto; display: block; text-align: center; background-color: var(--accent-color);
-    color: white; padding: 10px; border-radius: 6px; font-weight: 600;
-    text-decoration: none; transition: background-color 0.2s ease;
-  }
+  .item-buy-button { margin-top: auto; display: block; text-align: center; background-color: var(--accent-color); color: white; padding: 10px; border-radius: 6px; font-weight: 600; text-decoration: none; transition: background-color 0.2s ease; }
   .item-buy-button:hover { background-color: var(--accent-hover-color); }
   .item-buy-button.disabled { background-color: var(--border-color); color: var(--text-color-muted); cursor: not-allowed; }
-  .item-buy-button.disabled:hover { background-color: var(--border-color); }
+  .item-delete-button { position: absolute; top: 8px; left: 8px; background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background-color 0.2s; }
+  .item-delete-button:hover { background-color: #dc2626; }
 
-
-  .modal-overlay {
-    display: none; position: fixed; z-index: 1100; inset: 0; background: rgba(0,0,0,0.75);
-    justify-content: center; align-items: center;
-  }
-  .modal-content {
-    background: var(--primary-color); padding: 25px 30px; border-radius: 12px;
-    width: 380px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative;
-  }
+  .modal-overlay { display: none; position: fixed; z-index: 1100; inset: 0; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; }
+  .modal-content { background: var(--primary-color); padding: 25px 30px; border-radius: 12px; width: 380px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
   .modal-content h2 { color: var(--text-color); font-weight: 800; font-size: 22px; margin: 0 0 20px 0; text-align: center; }
   .modal-content .form-group { margin-bottom: 15px; }
   .modal-content label { display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-color-muted); }
-  .modal-content input {
-    width: calc(100% - 24px); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);
-    background-color: var(--background-color); color: var(--text-color); font-size: 16px;
-  }
+  .modal-content input[type="text"], .modal-content input[type="url"], .modal-content input[type="number"], .modal-content input[type="password"] { width: calc(100% - 24px); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--background-color); color: var(--text-color); font-size: 16px; }
+  .tag-selection { display: flex; gap: 15px; align-items: center; }
+  .tag-selection label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-color); cursor: pointer; }
+  .tag-selection input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-color); }
   .modal-content .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-  .modal-content .modal-actions button {
-    flex-grow: 1; border: none; padding: 12px; border-radius: 8px; font-weight: 700;
-    cursor: pointer; font-size: 16px; transition: background-color 0.2s ease;
-  }
+  .modal-content .modal-actions button { flex-grow: 1; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
   .modal-content .modal-actions .btn-primary { background-color: var(--accent-color); color: white; }
   .modal-content .modal-actions .btn-primary:hover { background-color: var(--accent-hover-color); }
   .modal-content .modal-actions .btn-secondary { background-color: var(--border-color); color: var(--text-color); }
   .modal-content .modal-actions .btn-secondary:hover { background-color: #4b5563; }
-  .loader {
-    display: none; position: absolute; inset: 0; background: rgba(31, 41, 55, 0.8);
-    border-radius: 12px; justify-content: center; align-items: center;
-  }
-  .spinner {
-    width: 40px; height: 40px; border: 4px solid var(--border-color);
-    border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite;
-  }
+  .loader { display: none; position: absolute; inset: 0; background: rgba(31, 41, 55, 0.8); border-radius: 12px; justify-content: center; align-items: center; }
+  .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -162,16 +83,19 @@
 
 <main>
   <div class="controls-container">
-    <div class="search-filter-bar">
-      <button class="filter-button">
+    <div class="filter-container">
+      <button class="filter-button" id="filter-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 4h12M4 8h8M6.5 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
         <span>Filtry</span>
       </button>
-      <input type="search" class="search-input" placeholder="Wyszukaj po nazwie...">
+      <div class="filter-dropdown" id="filter-dropdown">
+          <button data-filter="all" class="active">Wszystkie</button>
+          <button data-filter="isNew">❤️ NEW</button>
+          <button data-filter="isBest">⭐ BEST</button>
+          <button data-filter="isBudget">💸 BUDGET</button>
+      </div>
     </div>
-    <div class="category-tabs">
-      <button class="active">Wszystkie</button><button>Belts</button><button>Electronics</button><button>Headwear</button><button>Hoodies</button><button>Jackets</button><button>Jewelry</button><button>Others</button><button>Pants</button><button>Shoes</button><button>Shorts</button><button>Sweaters</button>
-    </div>
+    <input type="search" class="search-input" id="search-input" placeholder="Wyszukaj po nazwie...">
   </div>
   <div id="items-container"></div>
 </main>
@@ -190,14 +114,22 @@
 <div id="add-item-modal" class="modal-overlay">
     <div class="modal-content">
         <h2>Dodaj nowy przedmiot</h2>
-        <div class="form-group"><label for="item-name-input">Nazwa przedmiotu</label><input id="item-name-input" type="text" placeholder="np. New Balance 9060" /></div>
-        <div class="form-group"><label for="item-desc-input">Opis (opcjonalnie)</label><input id="item-desc-input" type="text" placeholder="np. Rozmiar 42, Stan 10/10" /></div>
-        <div class="form-group"><label for="item-price-input">Cena</label><input id="item-price-input" type="number" placeholder="np. 157" /></div>
-        <div class="form-group"><label for="item-link-input">Link do zakupu</label><input id="item-link-input" type="url" placeholder="https://..." /></div>
-        <div class="form-group"><label for="item-image-input">Link do zdjęcia (np. Imgur)</label><input id="item-image-input" type="url" placeholder="https://i.imgur.com/..." /></div>
+        <div class="form-group"><label for="item-name-input">Nazwa</label><input id="item-name-input" type="text" /></div>
+        <div class="form-group"><label for="item-desc-input">Opis</label><input id="item-desc-input" type="text" /></div>
+        <div class="form-group"><label for="item-price-input">Cena</label><input id="item-price-input" type="number" /></div>
+        <div class="form-group"><label for="item-link-input">Link do zakupu</label><input id="item-link-input" type="url" /></div>
+        <div class="form-group"><label for="item-image-input">Link do zdjęcia</label><input id="item-image-input" type="url" /></div>
+        <div class="form-group">
+            <label>Tagi</label>
+            <div class="tag-selection">
+                <label><input type="checkbox" id="tag-new"> NEW</label>
+                <label><input type="checkbox" id="tag-best"> BEST</label>
+                <label><input type="checkbox" id="tag-budget"> BUDGET</label>
+            </div>
+        </div>
         <div class="modal-actions">
             <button id="add-item-cancel" class="btn-secondary">Anuluj</button>
-            <button id="add-item-submit" class="btn-primary">Dodaj przedmiot</button>
+            <button id="add-item-submit" class="btn-primary">Dodaj</button>
         </div>
         <div class="loader" id="add-item-loader"><div class="spinner"></div></div>
     </div>
@@ -205,169 +137,190 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
-  authDomain: "spridszit-firerepy.firebaseapp.com",
-  databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "spridszit-firerepy",
-  storageBucket: "spridszit-firerepy.appspot.com",
-  messagingSenderId: "963006920352",
-  appId: "1:963006920352:web:58538b879f004c02873bc5"
-};
-
+const firebaseConfig = { /* Twoja konfiguracja Firebase */ };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Elementy UI
-const loginButton = document.getElementById("login-button");
-const logoutButton = document.getElementById("logout-button");
-const addItemButton = document.getElementById("add-item-button");
-const itemsContainer = document.getElementById("items-container");
-
-// Modale i ich elementy
-const loginModal = document.getElementById("login-modal");
-const loginSubmit = document.getElementById("login-submit");
-const loginUsername = document.getElementById("login-username");
-const loginPassword = document.getElementById("login-password");
-
-const addItemModal = document.getElementById("add-item-modal");
-const addItemSubmit = document.getElementById("add-item-submit");
-const addItemCancel = document.getElementById("add-item-cancel");
-const addItemLoader = document.getElementById("add-item-loader");
-const itemNameInput = document.getElementById("item-name-input");
-const itemDescInput = document.getElementById("item-desc-input");
-const itemPriceInput = document.getElementById("item-price-input");
-const itemLinkInput = document.getElementById("item-link-input");
-const itemImageInput = document.getElementById("item-image-input");
-
+// Globalne stany
 const ADMIN_USER = "ifirelovereps";
 const ADMIN_PASS = "fi123re987re098ps321";
 let isAdmin = false;
+let allItems = {};
+let activeFilter = 'all';
+let searchTerm = '';
 
-// Funkcje pomocnicze do modali
+// Elementy UI
+const loginButton = document.getElementById("login-button"), logoutButton = document.getElementById("logout-button");
+const addItemButton = document.getElementById("add-item-button"), itemsContainer = document.getElementById("items-container");
+const searchInput = document.getElementById("search-input");
+const filterBtn = document.getElementById('filter-btn'), filterDropdown = document.getElementById('filter-dropdown');
+
+// Modale
+const loginModal = document.getElementById("login-modal"), addItemModal = document.getElementById("add-item-modal");
+const loginSubmit = document.getElementById("login-submit"), addItemSubmit = document.getElementById("add-item-submit");
+const addItemCancel = document.getElementById("add-item-cancel"), addItemLoader = document.getElementById("add-item-loader");
+
+// Funkcje pomocnicze
 const showModal = (modal) => modal.style.display = "flex";
 const hideModal = (modal) => modal.style.display = "none";
 
-// Funkcje do zarządzania stanem UI
-const updateUIForAdmin = () => {
-  loginButton.style.display = "none";
-  addItemButton.style.display = "inline-block";
-  logoutButton.style.display = "inline-block";
-};
-const updateUIForGuest = () => {
-  loginButton.style.display = "inline-block";
-  addItemButton.style.display = "none";
-  logoutButton.style.display = "none";
-};
+// Logika UI
+const updateUIForAdmin = () => { loginButton.style.display = "none"; addItemButton.style.display = "inline-block"; logoutButton.style.display = "inline-block"; displayFilteredItems(); };
+const updateUIForGuest = () => { loginButton.style.display = "inline-block"; addItemButton.style.display = "none"; logoutButton.style.display = "none"; displayFilteredItems(); };
 
-// Funkcja renderująca przedmioty
-function renderItems(items) {
+// Główna funkcja renderująca
+function renderItems(itemsToRender) {
   itemsContainer.innerHTML = "";
-  for (const key in items) {
-    const item = items[key];
+  for (const key in itemsToRender) {
+    const item = itemsToRender[key];
     const card = document.createElement("div");
     card.className = "item-card";
 
+    let badgesHTML = '';
+    if (item.tags) {
+        if (item.tags.isNew) badgesHTML += `<span class="badge badge-new">❤️ NEW</span>`;
+        if (item.tags.isBest) badgesHTML += `<span class="badge badge-best">⭐ BEST</span>`;
+        if (item.tags.isBudget) badgesHTML += `<span class="badge badge-budget">💸 BUDGET</span>`;
+    }
+
     card.innerHTML = `
+      ${isAdmin ? `<button class="item-delete-button" data-key="${key}" title="Usuń przedmiot">×</button>` : ''}
       <div class="item-image-wrapper">
         <img src="${item.image || 'https://via.placeholder.com/220'}" alt="${item.name}" loading="lazy">
-        <!-- Badge logic can be added here if needed -->
+        <div class="card-badges">${badgesHTML}</div>
       </div>
       <div class="item-info">
         <div class="item-title">${item.name || 'Brak nazwy'}</div>
         <div class="item-description">${item.description || ''}</div>
         <div class="item-price">${item.price ? `${item.price} PLN` : ''}</div>
-        ${item.purchaseLink 
-          ? `<a href="${item.purchaseLink}" class="item-buy-button" target="_blank" rel="noopener noreferrer">Kup</a>` 
-          : `<button class="item-buy-button disabled" disabled>Brak linku</button>`
-        }
-      </div>
-    `;
+        ${item.purchaseLink ? `<a href="${item.purchaseLink}" class="item-buy-button" target="_blank" rel="noopener noreferrer">Kup</a>` : `<button class="item-buy-button disabled" disabled>Brak linku</button>`}
+      </div>`;
     itemsContainer.appendChild(card);
   }
 }
 
-function fetchAndRenderItems() {
-  const itemsRef = ref(db, "items");
-  onValue(itemsRef, (snapshot) => {
-    const data = snapshot.val() || {};
-    renderItems(data);
-  });
+function displayFilteredItems() {
+    let filteredItems = { ...allItems };
+
+    // 1. Filtrowanie po tagu
+    if (activeFilter !== 'all') {
+        filteredItems = Object.fromEntries(
+            Object.entries(filteredItems).filter(([key, item]) => item.tags && item.tags[activeFilter])
+        );
+    }
+
+    // 2. Filtrowanie po nazwie
+    if (searchTerm) {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        filteredItems = Object.fromEntries(
+            Object.entries(filteredItems).filter(([key, item]) => item.name.toLowerCase().includes(lowerCaseSearchTerm))
+        );
+    }
+    
+    renderItems(filteredItems);
 }
 
 // Logika eventów
 loginButton.onclick = () => showModal(loginModal);
-logoutButton.onclick = () => {
-  isAdmin = false;
-  updateUIForGuest();
+logoutButton.onclick = () => { isAdmin = false; updateUIForGuest(); };
+addItemButton.onclick = () => {
+    // Resetuj formularz przed pokazaniem
+    document.getElementById('item-name-input').value = ''; document.getElementById('item-desc-input').value = '';
+    document.getElementById('item-price-input').value = ''; document.getElementById('item-link-input').value = '';
+    document.getElementById('item-image-input').value = ''; document.getElementById('tag-new').checked = false;
+    document.getElementById('tag-best').checked = false; document.getElementById('tag-budget').checked = false;
+    showModal(addItemModal);
 };
-
-addItemButton.onclick = () => showModal(addItemModal);
 addItemCancel.onclick = () => hideModal(addItemModal);
-
 loginModal.onclick = (e) => { if (e.target === loginModal) hideModal(loginModal); };
 addItemModal.onclick = (e) => { if (e.target === addItemModal) hideModal(addItemModal); };
 
 loginSubmit.onclick = () => {
-  const user = loginUsername.value.trim();
-  const pass = loginPassword.value.trim();
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    isAdmin = true;
-    hideModal(loginModal);
-    updateUIForAdmin();
-  } else {
-    alert("Niepoprawny login lub hasło");
-  }
+  if (document.getElementById("login-username").value.trim() === ADMIN_USER && document.getElementById("login-password").value.trim() === ADMIN_PASS) {
+    isAdmin = true; hideModal(loginModal); updateUIForAdmin();
+  } else { alert("Niepoprawny login lub hasło"); }
 };
 
 addItemSubmit.onclick = async () => {
-  const name = itemNameInput.value.trim();
-  const description = itemDescInput.value.trim();
-  const price = itemPriceInput.value.trim();
-  const purchaseLink = itemLinkInput.value.trim();
-  const image = itemImageInput.value.trim();
+  const name = document.getElementById('item-name-input').value.trim();
+  const price = document.getElementById('item-price-input').value.trim();
+  const purchaseLink = document.getElementById('item-link-input').value.trim();
+  const image = document.getElementById('item-image-input').value.trim();
 
-  if (!name || !price || !purchaseLink || !image) {
-    alert("Wypełnij wszystkie wymagane pola: Nazwa, Cena, Link do zakupu i Link do zdjęcia.");
-    return;
-  }
-
+  if (!name || !price || !purchaseLink || !image) { alert("Wypełnij wymagane pola: Nazwa, Cena, Link do zakupu, Link do zdjęcia."); return; }
+  
   const newItemData = {
-    name,
-    description,
-    price: Number(price),
-    purchaseLink,
-    image,
+    name, description: document.getElementById('item-desc-input').value.trim(),
+    price: Number(price), purchaseLink, image,
+    tags: {
+        isNew: document.getElementById('tag-new').checked,
+        isBest: document.getElementById('tag-best').checked,
+        isBudget: document.getElementById('tag-budget').checked,
+    },
     createdAt: new Date().toISOString()
   };
 
   addItemLoader.style.display = 'flex';
-  
   try {
-    const newItemRef = push(ref(db, 'items'));
-    await set(newItemRef, newItemData);
-    
-    // Reset form and hide modal
-    itemNameInput.value = '';
-    itemDescInput.value = '';
-    itemPriceInput.value = '';
-    itemLinkInput.value = '';
-    itemImageInput.value = '';
+    await set(push(ref(db, 'items')), newItemData);
     hideModal(addItemModal);
-
-  } catch (error) {
-    console.error("Błąd podczas dodawania przedmiotu:", error);
-    alert("Wystąpił błąd. Sprawdź konsolę, aby uzyskać więcej informacji.");
-  } finally {
-    addItemLoader.style.display = 'none';
-  }
+  } catch (error) { console.error("Błąd:", error); alert("Wystąpił błąd."); } 
+  finally { addItemLoader.style.display = 'none'; }
 };
 
-// Inicjalizacja strony
+// Event Delegation dla przycisków usuwania
+itemsContainer.onclick = async (e) => {
+    if (e.target.classList.contains('item-delete-button')) {
+        const key = e.target.dataset.key;
+        if (confirm('Czy na pewno chcesz usunąć ten przedmiot? Tej operacji nie można cofnąć.')) {
+            try {
+                await remove(ref(db, `items/${key}`));
+            } catch (error) {
+                console.error("Błąd usuwania:", error);
+                alert("Nie udało się usunąć przedmiotu.");
+            }
+        }
+    }
+};
+
+// Logika filtrowania i wyszukiwania
+searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value.trim();
+    displayFilteredItems();
+});
+
+filterBtn.addEventListener('click', () => {
+    filterDropdown.style.display = filterDropdown.style.display === 'block' ? 'none' : 'block';
+});
+
+filterDropdown.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+        // Zdejmij klasę 'active' ze wszystkich przycisków
+        filterDropdown.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        // Dodaj klasę 'active' do klikniętego
+        e.target.classList.add('active');
+        activeFilter = e.target.dataset.filter;
+        displayFilteredItems();
+        filterDropdown.style.display = 'none'; // Schowaj menu po wyborze
+    }
+});
+
+// Chowanie menu filtrów po kliknięciu poza nim
+document.addEventListener('click', (e) => {
+    if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
+        filterDropdown.style.display = 'none';
+    }
+});
+
+// Inicjalizacja
 updateUIForGuest();
-fetchAndRenderItems();
+onValue(ref(db, "items"), (snapshot) => {
+    allItems = snapshot.val() || {};
+    displayFilteredItems();
+});
+
 </script>
 </body>
 </html>
