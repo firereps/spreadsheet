@@ -96,9 +96,9 @@
       </button>
       <div class="filter-dropdown" id="filter-dropdown">
           <button data-filter="all" class="active">Wszystkie</button>
-          <button data-filter="isNew">⭐ NEW</button>
+          <button data-filter="isNew">❤️ NEW</button>
           <button data-filter="isBest">⭐ BEST</button>
-          <button data-filter="isBudget">$ BUDGET</button>
+          <button data-filter="isBudget">💸 BUDGET</button>
       </div>
     </div>
     <input type="search" class="search-input" id="search-input" placeholder="Wyszukaj po nazwie...">
@@ -150,7 +150,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const firebaseConfig = { /* Twoja konfiguracja Firebase */ };
+const firebaseConfig = {
+  apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+  authDomain: "spridszit-firerepy.firebaseapp.com",
+  databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "spridszit-firerepy",
+  storageBucket: "spridszit-firerepy.appspot.com",
+  messagingSenderId: "963006920352",
+  appId: "1:963006920352:web:58538b879f004c02873bc5"
+};
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -158,19 +166,25 @@ const db = getDatabase(app);
 const ADMIN_USER = "ifirelovereps", ADMIN_PASS = "fi123re987re098ps321";
 let isAdmin = false, allItems = {}, activeFilter = 'all', searchTerm = '';
 
-// Elementy UI i Modali
+// --- SELEKTORY ELEMENTÓW DOM (ZEBRANE W JEDNYM MIEJSCU) ---
 const loginButton = document.getElementById("login-button"), logoutButton = document.getElementById("logout-button");
 const addItemButton = document.getElementById("add-item-button"), itemsContainer = document.getElementById("items-container");
 const searchInput = document.getElementById("search-input");
 const filterBtn = document.getElementById('filter-btn'), filterDropdown = document.getElementById('filter-dropdown');
+// Modale
 const loginModal = document.getElementById("login-modal"), addItemModal = document.getElementById("add-item-modal"), editItemModal = document.getElementById("edit-item-modal");
+// Przyciski i formularze
+const loginSubmit = document.getElementById('login-submit'), addItemSubmit = document.getElementById('add-item-submit'), editItemSubmit = document.getElementById('edit-item-submit');
+const addItemCancel = document.getElementById('add-item-cancel'), editItemCancel = document.getElementById('edit-item-cancel');
+const addItemLoader = document.getElementById('add-item-loader'), editItemLoader = document.getElementById('edit-item-loader');
 
+// --- FUNKCJE POMOCNICZE ---
 const showModal = (modal) => modal.style.display = "flex";
 const hideModal = (modal) => modal.style.display = "none";
-
 const updateUIForAdmin = () => { loginButton.style.display = "none"; addItemButton.style.display = "inline-block"; logoutButton.style.display = "inline-block"; displayFilteredItems(); };
 const updateUIForGuest = () => { loginButton.style.display = "inline-block"; addItemButton.style.display = "none"; logoutButton.style.display = "none"; displayFilteredItems(); };
 
+// --- GŁÓWNA LOGIKA RENDEROWANIA I FILTROWANIA ---
 function renderItems(itemsToRender) {
   itemsContainer.innerHTML = "";
   for (const key in itemsToRender) {
@@ -179,9 +193,9 @@ function renderItems(itemsToRender) {
     card.className = "item-card";
     let badgesHTML = '';
     if (item.tags) {
-        if (item.tags.isNew) badgesHTML += `<span class="badge badge-new">⭐ NEW</span>`;
+        if (item.tags.isNew) badgesHTML += `<span class="badge badge-new">❤️ NEW</span>`;
         if (item.tags.isBest) badgesHTML += `<span class="badge badge-best">⭐ BEST</span>`;
-        if (item.tags.isBudget) badgesHTML += `<span class="badge badge-budget">$ BUDGET</span>`;
+        if (item.tags.isBudget) badgesHTML += `<span class="badge badge-budget">💸 BUDGET</span>`;
     }
     const adminButtonsHTML = isAdmin ? `
       <button class="admin-button item-delete-button" data-key="${key}" title="Usuń">×</button>
@@ -201,97 +215,68 @@ function displayFilteredItems() {
     renderItems(filtered);
 }
 
-// Logika eventów
+// --- OBSŁUGA EVENTÓW ---
+
+// Logowanie i wylogowanie
 loginButton.onclick = () => showModal(loginModal);
 logoutButton.onclick = () => { isAdmin = false; updateUIForGuest(); };
+loginSubmit.onclick = () => { if (document.getElementById("login-username").value.trim() === ADMIN_USER && document.getElementById("login-password").value.trim() === ADMIN_PASS) { isAdmin = true; hideModal(loginModal); updateUIForAdmin(); } else { alert("Niepoprawny login lub hasło"); } };
 
-// --- Dodawanie przedmiotu ---
-document.getElementById("add-item-button").onclick = () => {
-    document.getElementById('add-item-modal').querySelectorAll('input').forEach(input => input.type === 'checkbox' ? input.checked = false : input.value = '');
+// Dodawanie przedmiotu
+addItemButton.onclick = () => {
+    addItemModal.querySelectorAll('input').forEach(input => input.type === 'checkbox' ? input.checked = false : input.value = '');
     showModal(addItemModal);
 };
-document.getElementById("add-item-cancel").onclick = () => hideModal(addItemModal);
-document.getElementById("add-item-submit").onclick = async () => {
-  const name = document.getElementById('add-item-name').value.trim();
-  const price = document.getElementById('add-item-price').value.trim();
+addItemCancel.onclick = () => hideModal(addItemModal);
+addItemSubmit.onclick = async () => {
+  const name = document.getElementById('add-item-name').value.trim(), price = document.getElementById('add-item-price').value.trim();
   if (!name || !price) { alert("Nazwa i cena są wymagane."); return; }
-  const newItemData = {
-    name, price: Number(price), createdAt: new Date().toISOString(),
-    description: document.getElementById('add-item-desc').value.trim(),
-    purchaseLink: document.getElementById('add-item-link').value.trim(),
-    image: document.getElementById('add-item-image').value.trim(),
-    tags: { isNew: document.getElementById('add-tag-new').checked, isBest: document.getElementById('add-tag-best').checked, isBudget: document.getElementById('add-tag-budget').checked }
-  };
-  const loader = document.getElementById('add-item-loader');
-  loader.style.display = 'flex';
+  const newItemData = { name, price: Number(price), createdAt: new Date().toISOString(), description: document.getElementById('add-item-desc').value.trim(), purchaseLink: document.getElementById('add-item-link').value.trim(), image: document.getElementById('add-item-image').value.trim(), tags: { isNew: document.getElementById('add-tag-new').checked, isBest: document.getElementById('add-tag-best').checked, isBudget: document.getElementById('add-tag-budget').checked } };
+  addItemLoader.style.display = 'flex';
   try { await set(push(ref(db, 'items')), newItemData); hideModal(addItemModal); } 
   catch (e) { console.error("Błąd:", e); alert("Wystąpił błąd."); } 
-  finally { loader.style.display = 'none'; }
+  finally { addItemLoader.style.display = 'none'; }
 };
 
-// --- Edycja przedmiotu ---
+// Edycja przedmiotu
 function openEditModal(key) {
-    const item = allItems[key];
-    if (!item) return;
-    document.getElementById('edit-item-modal').dataset.editingKey = key;
-    document.getElementById('edit-item-name').value = item.name || '';
-    document.getElementById('edit-item-desc').value = item.description || '';
-    document.getElementById('edit-item-price').value = item.price || '';
-    document.getElementById('edit-item-link').value = item.purchaseLink || '';
+    const item = allItems[key]; if (!item) return;
+    editItemModal.dataset.editingKey = key;
+    document.getElementById('edit-item-name').value = item.name || ''; document.getElementById('edit-item-desc').value = item.description || '';
+    document.getElementById('edit-item-price').value = item.price || ''; document.getElementById('edit-item-link').value = item.purchaseLink || '';
     document.getElementById('edit-item-image').value = item.image || '';
-    document.getElementById('edit-tag-new').checked = item.tags?.isNew || false;
-    document.getElementById('edit-tag-best').checked = item.tags?.isBest || false;
-    document.getElementById('edit-tag-budget').checked = item.tags?.isBudget || false;
+    document.getElementById('edit-tag-new').checked = item.tags?.isNew || false; document.getElementById('edit-tag-best').checked = item.tags?.isBest || false; document.getElementById('edit-tag-budget').checked = item.tags?.isBudget || false;
     showModal(editItemModal);
 }
-document.getElementById("edit-item-cancel").onclick = () => hideModal(editItemModal);
-document.getElementById("edit-item-submit").onclick = async () => {
-    const key = document.getElementById('edit-item-modal').dataset.editingKey;
-    if (!key) return;
-    const name = document.getElementById('edit-item-name').value.trim();
-    const price = document.getElementById('edit-item-price').value.trim();
+editItemCancel.onclick = () => hideModal(editItemModal);
+editItemSubmit.onclick = async () => {
+    const key = editItemModal.dataset.editingKey; if (!key) return;
+    const name = document.getElementById('edit-item-name').value.trim(), price = document.getElementById('edit-item-price').value.trim();
     if (!name || !price) { alert("Nazwa i cena są wymagane."); return; }
-    const updatedData = {
-        ...allItems[key], // Zachowaj istniejące dane jak createdAt
-        name, price: Number(price),
-        description: document.getElementById('edit-item-desc').value.trim(),
-        purchaseLink: document.getElementById('edit-item-link').value.trim(),
-        image: document.getElementById('edit-item-image').value.trim(),
-        tags: { isNew: document.getElementById('edit-tag-new').checked, isBest: document.getElementById('edit-tag-best').checked, isBudget: document.getElementById('edit-tag-budget').checked }
-    };
-    const loader = document.getElementById('edit-item-loader');
-    loader.style.display = 'flex';
+    const updatedData = { ...allItems[key], name, price: Number(price), description: document.getElementById('edit-item-desc').value.trim(), purchaseLink: document.getElementById('edit-item-link').value.trim(), image: document.getElementById('edit-item-image').value.trim(), tags: { isNew: document.getElementById('edit-tag-new').checked, isBest: document.getElementById('edit-tag-best').checked, isBudget: document.getElementById('edit-tag-budget').checked } };
+    editItemLoader.style.display = 'flex';
     try { await set(ref(db, `items/${key}`), updatedData); hideModal(editItemModal); }
     catch (e) { console.error("Błąd:", e); alert("Wystąpił błąd."); }
-    finally { loader.style.display = 'none'; }
+    finally { editItemLoader.style.display = 'none'; }
 };
 
-// --- Delegacja eventów dla przycisków na kartach ---
+// Eventy na kartach (usuwanie, edycja)
 itemsContainer.onclick = async (e) => {
-    const deleteButton = e.target.closest('.item-delete-button');
-    const editButton = e.target.closest('.item-edit-button');
-    if (deleteButton) {
-        const key = deleteButton.dataset.key;
-        if (confirm('Czy na pewno chcesz usunąć ten przedmiot?')) {
-            try { await remove(ref(db, `items/${key}`)); } 
-            catch (e) { console.error("Błąd usuwania:", e); alert("Nie udało się usunąć przedmiotu."); }
-        }
-    } else if (editButton) {
-        openEditModal(editButton.dataset.key);
-    }
+    const deleteButton = e.target.closest('.item-delete-button'), editButton = e.target.closest('.item-edit-button');
+    if (deleteButton) { const key = deleteButton.dataset.key; if (confirm('Czy na pewno chcesz usunąć ten przedmiot?')) { try { await remove(ref(db, `items/${key}`)); } catch (e) { console.error("Błąd usuwania:", e); alert("Nie udało się usunąć przedmiotu."); } } } 
+    else if (editButton) { openEditModal(editButton.dataset.key); }
 };
 
-// Inne eventy
+// Inne
 loginModal.onclick = (e) => { if (e.target === loginModal) hideModal(loginModal); };
 addItemModal.onclick = (e) => { if (e.target === addItemModal) hideModal(addItemModal); };
 editItemModal.onclick = (e) => { if (e.target === editItemModal) hideModal(editItemModal); };
-document.getElementById("login-submit").onclick = () => { if (document.getElementById("login-username").value.trim() === ADMIN_USER && document.getElementById("login-password").value.trim() === ADMIN_PASS) { isAdmin = true; hideModal(loginModal); updateUIForAdmin(); } else { alert("Niepoprawny login lub hasło"); } };
 searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.trim(); displayFilteredItems(); });
 filterBtn.addEventListener('click', () => { filterDropdown.style.display = filterDropdown.style.display === 'block' ? 'none' : 'block'; });
 filterDropdown.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { filterDropdown.querySelectorAll('button').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); activeFilter = e.target.dataset.filter; displayFilteredItems(); filterDropdown.style.display = 'none'; } });
 document.addEventListener('click', (e) => { if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) { filterDropdown.style.display = 'none'; } });
 
-// Inicjalizacja
+// --- INICJALIZACJA STRONY ---
 updateUIForGuest();
 onValue(ref(db, "items"), (snapshot) => { allItems = snapshot.val() || {}; displayFilteredItems(); });
 </script>
