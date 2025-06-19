@@ -2,357 +2,540 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>FireReps - panel admina</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FireReps - Zarządzanie przedmiotami</title>
 <style>
   body {
-    font-family: 'Roboto', sans-serif;
-    background: #f0f0f0;
-    margin: 0; padding: 0;
+    font-family: Arial, sans-serif;
+    margin: 0; background:#f5f5f5; color:#222;
   }
   header {
-    background: #1a73e8;
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background:#1a73e8; color:#fff; padding:12px 20px; display:flex; justify-content: space-between; align-items:center;
   }
   header h1 {
-    margin: 0; font-weight: 500;
-  }
-  button {
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 16px;
-    font-weight: 600;
-    font-size: 14px;
-    transition: background-color 0.2s;
+    margin:0; font-weight:normal;
   }
   #login-btn {
-    background: white;
-    color: #1a73e8;
+    background:#fff; color:#1a73e8; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:600;
   }
   #login-btn:hover {
-    background: #e1e7ff;
+    background:#e1eaff;
   }
-  #add-new-btn {
-    background: #1a73e8;
-    color: white;
-    display: none;
-    margin: 20px;
-  }
-  #add-new-btn:hover {
-    background: #155ab6;
-  }
-  #add-panel {
-    display: none;
+  #item-container {
+    max-width: 960px;
     margin: 20px auto;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgb(0 0 0 / 0.1);
-  }
-  #add-panel h2 {
-    margin-top: 0;
-  }
-  #items-list {
-    margin-top: 20px;
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 20px;
+    justify-content: center;
   }
   .item-card {
-    background: #e8f0fe;
-    padding: 15px;
-    border-radius: 10px;
-    width: 160px;
-    box-shadow: 0 1px 5px rgb(0 0 0 / 0.1);
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    width: 280px; display:flex; flex-direction: column;
   }
-  .item-card.dragging {
-    opacity: 0.5;
+  .item-card img {
+    width: 100%; height: 180px; object-fit: cover; border-top-left-radius:10px; border-top-right-radius:10px;
   }
-  .item-image {
-    width: 100%;
-    height: 100px;
-    object-fit: contain;
-    border-radius: 6px;
-    background: white;
-    border: 1px solid #ddd;
+  .card-content {
+    padding: 16px; flex-grow:1; display:flex; flex-direction: column;
   }
-  .item-name {
+  .card-content h3 {
+    margin: 0 0 10px 0; font-size: 20px; color: #1a1a1a;
+  }
+  .card-content p {
+    flex-grow:1; font-size: 14px; color:#555; margin: 0 0 16px 0;
+  }
+  .btn-buy {
+    background: #4CAF50;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    border-radius: 8px;
     font-weight: 600;
-    font-size: 16px;
+    text-decoration: none;
+    user-select:none;
+  }
+  .btn-buy:hover {
+    background: #388E3C;
+  }
+  /* admin buttons */
+  .btn-edit, .btn-delete {
+    margin-top: 8px;
+    padding: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select:none;
+    width: 100%;
+  }
+  .btn-edit {
+    background: #1976D2;
+    color: white;
+  }
+  .btn-edit:hover {
+    background: #135BA1;
+  }
+  .btn-delete {
+    background: #D32F2F;
+    color: white;
+  }
+  .btn-delete:hover {
+    background: #9A2424;
+  }
+  /* add btn */
+  #add-btn-wrapper {
+    width: 280px;
+    margin: 20px auto;
+    text-align: center;
+    cursor: pointer;
+    user-select:none;
+  }
+  #add-btn {
+    background:#1a73e8;
+    border-radius: 50%;
+    color:#fff;
+    font-size: 36px;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    margin: 0 auto 8px auto;
+    font-weight: 700;
+    display: inline-block;
+  }
+  #add-btn-text {
+    font-weight: 600;
     color: #1a73e8;
   }
-  .item-description {
-    font-size: 14px;
-    color: #555;
-    flex-grow: 1;
+  /* add panel */
+  #add-item-panel {
+    max-width: 320px;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
   }
-  .item-buttons {
-    display: flex;
-    justify-content: space-between;
-  }
-  .item-buttons button {
-    background: #1a73e8;
-    color: white;
-    padding: 6px 10px;
-    font-size: 13px;
-    border-radius: 6px;
-    flex-grow: 1;
-    margin: 0 2px;
-  }
-  .item-buttons button.delete {
-    background: #d93025;
-  }
-  .item-buttons button.delete:hover {
-    background: #a52714;
-  }
-  .item-buttons button:hover {
-    background: #155ab6;
-  }
-  form label {
-    display: block;
-    margin-top: 12px;
+  #add-item-panel label {
     font-weight: 600;
+    font-size: 14px;
     color: #333;
   }
-  form input[type=text], form textarea {
-    width: 100%;
-    padding: 8px 10px;
-    margin-top: 4px;
+  #add-item-panel input[type=text],
+  #add-item-panel textarea,
+  #add-item-panel input[type=url],
+  #add-item-panel input[type=file] {
+    padding: 10px;
     border-radius: 6px;
-    border: 1px solid #bbb;
+    border: 1px solid #ccc;
     font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
-  form textarea {
+  #add-item-panel textarea {
     resize: vertical;
+    min-height: 60px;
   }
-  form input[type=file] {
-    margin-top: 8px;
-  }
-  form button.submit-btn {
-    margin-top: 15px;
+  #add-item-panel button {
     background: #1a73e8;
     color: white;
-    width: 100%;
-    padding: 12px 0;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
     font-weight: 700;
-    font-size: 16px;
-    border-radius: 10px;
+    cursor: pointer;
   }
-  form button.submit-btn:hover {
+  #add-item-panel button:hover {
     background: #155ab6;
+  }
+  /* edit mode style */
+  .drag-handle {
+    cursor: grab;
+    padding: 8px;
+    background: #ddd;
+    border-radius: 6px 6px 0 0;
+    text-align: center;
+    user-select:none;
+  }
+  /* modal delete */
+  #confirm-modal {
+    display:none;
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  #confirm-box {
+    background: white;
+    border-radius: 10px;
+    padding: 24px;
+    max-width: 320px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  #confirm-box p {
+    margin-bottom: 24px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #222;
+  }
+  #confirm-buttons {
+    display: flex;
+    justify-content: space-around;
+  }
+  #confirm-buttons button {
+    padding: 12px 28px;
+    border-radius: 8px;
+    border:none;
+    font-weight: 700;
+    cursor: pointer;
+    user-select:none;
+  }
+  #confirm-yes {
+    background: #d32f2f;
+    color: white;
+  }
+  #confirm-yes:hover {
+    background: #9a2424;
+  }
+  #confirm-no {
+    background: #555;
+    color: white;
+  }
+  #confirm-no:hover {
+    background: #333;
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>FireReps Spreadsheet</h1>
+  <h1>FireReps</h1>
   <button id="login-btn">Zaloguj się</button>
 </header>
 
-<button id="add-new-btn">Dodaj nowy przedmiot</button>
+<main id="item-container"></main>
 
-<div id="add-panel">
-  <h2>Panel administratora</h2>
-  <form id="item-form" enctype="multipart/form-data">
-    <label for="item-name">Nazwa przedmiotu</label>
-    <input type="text" id="item-name" required maxlength="40" />
-    <label for="item-description">Opis przedmiotu</label>
-    <textarea id="item-description" rows="3" maxlength="150"></textarea>
-    <label for="item-image">Zdjęcie (URL lub plik lokalny)</label>
-    <input type="text" id="item-image-url" placeholder="Wklej URL zdjęcia" />
-    <input type="file" id="item-image-file" accept="image/*" />
-    <button type="submit" class="submit-btn">Zapisz przedmiot</button>
-  </form>
+<div id="add-btn-wrapper" title="Dodaj nowy przedmiot" style="display:none;">
+  <div id="add-btn">+</div>
+  <div id="add-btn-text">Dodaj</div>
+</div>
 
-  <div id="items-list" aria-label="Lista przedmiotów">
-    <!-- tutaj pojawia sie kafelki -->
+<form id="add-item-panel" enctype="multipart/form-data">
+  <label for="item-name">Nazwa przedmiotu</label>
+  <input type="text" id="item-name" placeholder="Wpisz nazwę przedmiotu" required />
+
+  <label for="item-desc">Opis</label>
+  <textarea id="item-desc" placeholder="Wpisz opis przedmiotu" rows="3"></textarea>
+
+  <label for="item-link">Link do przedmiotu</label>
+  <input type="url" id="item-link" placeholder="Wpisz link do zakupu" required />
+
+  <label for="item-image">Dodaj zdjęcie</label>
+  <input type="file" id="item-image" accept="image/*" required />
+
+  <button type="submit">Dodaj przedmiot</button>
+</form>
+
+<div id="confirm-modal">
+  <div id="confirm-box">
+    <p>Czy na pewno chcesz usunąć ten przedmiot?</p>
+    <div id="confirm-buttons">
+      <button id="confirm-yes">Tak</button>
+      <button id="confirm-no">Nie</button>
+    </div>
   </div>
 </div>
 
 <script>
-  const loginBtn = document.getElementById('login-btn');
-  const addNewBtn = document.getElementById('add-new-btn');
-  const addPanel = document.getElementById('add-panel');
-  const itemForm = document.getElementById('item-form');
-  const itemsList = document.getElementById('items-list');
-  const imageUrlInput = document.getElementById('item-image-url');
-  const imageFileInput = document.getElementById('item-image-file');
-
-  const ADMIN_LOGIN = 'ifirelovereps';
-  const ADMIN_PASS = 'fi123re987re098ps321';
+  // dane przykładowe, można podmienić na firebase albo localStorage później
+  let items = [
+    {
+      id: '1',
+      name: 'Replika sneakersów',
+      description: 'Wysokiej jakości replika sneakersów z Kakobuya.',
+      link: 'https://kakobuya.com/sneakers',
+      image: 'https://via.placeholder.com/280x180?text=Replika+Sneakers',
+    },
+    {
+      id: '2',
+      name: 'Torba na ramię',
+      description: 'Stylowa torba na ramię idealna na co dzień.',
+      link: 'https://kakobuya.com/torba',
+      image: 'https://via.placeholder.com/280x180?text=Torba+na+r%C4%85mi%C4%99',
+    },
+  ];
 
   let isAdmin = false;
-  let items = [];
-  let editingIndex = -1;
+  let editingItemId = null;
+  let dragSrcEl = null;
+  const adminLogin = 'admin';
+  const adminPass = 'sigma123';
+
+  const loginBtn = document.getElementById('login-btn');
+  const itemContainer = document.getElementById('item-container');
+  const addBtnWrapper = document.getElementById('add-btn-wrapper');
+  const addBtn = document.getElementById('add-btn');
+  const addItemPanel = document.getElementById('add-item-panel');
+  const confirmModal = document.getElementById('confirm-modal');
+  const confirmYes = document.getElementById('confirm-yes');
+  const confirmNo = document.getElementById('confirm-no');
+
+  function renderItems() {
+    itemContainer.innerHTML = '';
+    // admin widzi wszystkie itemy + dodaj kafelek
+    // zwykly user widzi tylko itemy z przyciskiem kup
+    items.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.draggable = isAdmin;
+      card.dataset.id = item.id;
+
+      if (isAdmin) {
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.textContent = 'Przeciągnij';
+        card.appendChild(dragHandle);
+
+        dragHandle.addEventListener('dragstart', dragStart);
+        dragHandle.addEventListener('dragover', dragOver);
+        dragHandle.addEventListener('dragenter', dragEnter);
+        dragHandle.addEventListener('dragleave', dragLeave);
+        dragHandle.addEventListener('dragend', dragEnd);
+        dragHandle.addEventListener('drop', drop);
+      }
+
+      const img = document.createElement('img');
+      img.src = item.image;
+      img.alt = item.name;
+      card.appendChild(img);
+
+      const content = document.createElement('div');
+      content.className = 'card-content';
+
+      const h3 = document.createElement('h3');
+      h3.textContent = item.name;
+      content.appendChild(h3);
+
+      const p = document.createElement('p');
+      p.textContent = item.description;
+      content.appendChild(p);
+
+      if (isAdmin) {
+        // edycja i usuwanie
+        const btnEdit = document.createElement('button');
+        btnEdit.className = 'btn-edit';
+        btnEdit.textContent = 'Edytuj';
+        btnEdit.onclick = () => openEditPanel(item.id);
+        content.appendChild(btnEdit);
+
+        const btnDelete = document.createElement('button');
+        btnDelete.className = 'btn-delete';
+        btnDelete.textContent = 'Usuń';
+        btnDelete.onclick = () => confirmDelete(item.id);
+        content.appendChild(btnDelete);
+      } else {
+        // zwykly user przycisk kup
+        const btnBuy = document.createElement('a');
+        btnBuy.className = 'btn-buy';
+        btnBuy.textContent = 'Kup';
+        btnBuy.href = item.link;
+        btnBuy.target = '_blank';
+        btnBuy.rel = 'noopener noreferrer';
+        content.appendChild(btnBuy);
+      }
+
+      card.appendChild(content);
+      itemContainer.appendChild(card);
+    });
+
+    if (isAdmin) {
+      addBtnWrapper.style.display = 'block';
+    } else {
+      addBtnWrapper.style.display = 'none';
+    }
+  }
+
+  function openEditPanel(id) {
+    editingItemId = id;
+    addItemPanel.style.display = 'flex';
+
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    document.getElementById('item-name').value = item.name;
+    document.getElementById('item-desc').value = item.description;
+    document.getElementById('item-link').value = item.link;
+    // nie ustawiam pliku, bo nie da sie programowo
+
+    addItemPanel.querySelector('button').textContent = 'Zapisz zmiany';
+  }
+
+  function openAddPanel() {
+    editingItemId = null;
+    addItemPanel.style.display = 'flex';
+    addItemPanel.reset?.();
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-desc').value = '';
+    document.getElementById('item-link').value = '';
+    document.getElementById('item-image').value = '';
+    addItemPanel.querySelector('button').textContent = 'Dodaj przedmiot';
+  }
+
+  function closeAddPanel() {
+    addItemPanel.style.display = 'none';
+  }
+
+  addBtnWrapper.addEventListener('click', openAddPanel);
 
   loginBtn.addEventListener('click', () => {
-    if (isAdmin) {
-      // wyloguj
-      isAdmin = false;
-      loginBtn.textContent = 'Zaloguj się';
-      addNewBtn.style.display = 'none';
-      addPanel.style.display = 'none';
-      itemsList.innerHTML = '';
-      clearForm();
-      alert('Wylogowano');
-    } else {
-      const user = prompt('Podaj nazwę użytkownika:');
+    if (!isAdmin) {
+      const login = prompt('Podaj nazwę użytkownika:');
       const pass = prompt('Podaj hasło:');
-      if (user === ADMIN_LOGIN && pass === ADMIN_PASS) {
+      if (login === adminLogin && pass === adminPass) {
         isAdmin = true;
         loginBtn.textContent = 'Wyloguj się';
-        addNewBtn.style.display = 'inline-block';
-        addPanel.style.display = 'block';
         renderItems();
-        alert('Witaj, adminie!');
+        alert('Zalogowano jako administrator');
       } else {
-        alert('Nieprawidłowe dane logowania.');
+        alert('Niepoprawne dane logowania');
       }
+    } else {
+      isAdmin = false;
+      loginBtn.textContent = 'Zaloguj się';
+      closeAddPanel();
+      renderItems();
     }
   });
 
-  addNewBtn.addEventListener('click', () => {
-    editingIndex = -1;
-    clearForm();
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  });
-
-  itemForm.addEventListener('submit', (e) => {
+  addItemPanel.addEventListener('submit', e => {
     e.preventDefault();
 
-    let name = document.getElementById('item-name').value.trim();
-    let desc = document.getElementById('item-description').value.trim();
-    let url = imageUrlInput.value.trim();
+    const name = document.getElementById('item-name').value.trim();
+    const desc = document.getElementById('item-desc').value.trim();
+    const link = document.getElementById('item-link').value.trim();
+    const imageInput = document.getElementById('item-image');
 
-    if (!name) {
-      alert('Nazwa przedmiotu jest wymagana.');
+    if (!name || !link) {
+      alert('Nazwa i link są wymagane');
       return;
     }
 
-    if (imageFileInput.files.length > 0) {
-      // z pliku lokalnego - zrobimy odczyt base64 do wyswietlenia
-      const file = imageFileInput.files[0];
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const imageData = event.target.result;
-        saveItem(name, desc, imageData);
+    if (!editingItemId && imageInput.files.length === 0) {
+      alert('Wybierz zdjęcie przedmiotu');
+      return;
+    }
+
+    if (editingItemId) {
+      // edycja
+      const idx = items.findIndex(i => i.id === editingItemId);
+      if (idx === -1) return alert('Nie znaleziono przedmiotu do edycji');
+
+      items[idx].name = name;
+      items[idx].description = desc;
+      items[idx].link = link;
+
+      if (imageInput.files.length > 0) {
+        // czytamy obrazek jako base64
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          items[idx].image = ev.target.result;
+          closeAddPanel();
+          renderItems();
+        }
+        reader.readAsDataURL(imageInput.files[0]);
+      } else {
+        closeAddPanel();
+        renderItems();
       }
-      reader.readAsDataURL(file);
-    } else if (url) {
-      saveItem(name, desc, url);
     } else {
-      alert('Musisz podać zdjęcie - URL lub wybrać plik.');
+      // dodawanie nowego
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        items.push({
+          id: Date.now().toString(),
+          name,
+          description: desc,
+          link,
+          image: ev.target.result,
+        });
+        closeAddPanel();
+        renderItems();
+      }
+      reader.readAsDataURL(imageInput.files[0]);
     }
   });
 
-  function saveItem(name, desc, img) {
-    if (editingIndex === -1) {
-      items.push({name, desc, img});
-    } else {
-      items[editingIndex] = {name, desc, img};
+  // drag & drop
+
+  function dragStart(e) {
+    dragSrcEl = e.currentTarget.parentElement; // karta
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
+    dragSrcEl.classList.add('dragging');
+  }
+  function dragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+  function dragEnter(e) {
+    e.preventDefault();
+    const card = e.currentTarget.parentElement;
+    if (card !== dragSrcEl) card.classList.add('drag-over');
+  }
+  function dragLeave(e) {
+    const card = e.currentTarget.parentElement;
+    card.classList.remove('drag-over');
+  }
+  function dragEnd(e) {
+    dragSrcEl.classList.remove('dragging');
+    document.querySelectorAll('.item-card').forEach(card => card.classList.remove('drag-over'));
+  }
+  function drop(e) {
+    e.stopPropagation();
+    const card = e.currentTarget.parentElement;
+    if (dragSrcEl !== card) {
+      const srcId = dragSrcEl.dataset.id;
+      const tgtId = card.dataset.id;
+      const srcIdx = items.findIndex(i => i.id === srcId);
+      const tgtIdx = items.findIndex(i => i.id === tgtId);
+      // zamiana pozycji
+      const [moved] = items.splice(srcIdx, 1);
+      items.splice(tgtIdx, 0, moved);
+      renderItems();
     }
-    clearForm();
-    renderItems();
+    return false;
   }
 
-  function clearForm() {
-    document.getElementById('item-name').value = '';
-    document.getElementById('item-description').value = '';
-    imageUrlInput.value = '';
-    imageFileInput.value = '';
+  // usuwanie z potwierdzeniem
+
+  let deleteId = null;
+  function confirmDelete(id) {
+    deleteId = id;
+    confirmModal.style.display = 'flex';
   }
+  confirmYes.addEventListener('click', () => {
+    if (deleteId) {
+      items = items.filter(i => i.id !== deleteId);
+      deleteId = null;
+      confirmModal.style.display = 'none';
+      renderItems();
+    }
+  });
+  confirmNo.addEventListener('click', () => {
+    deleteId = null;
+    confirmModal.style.display = 'none';
+  });
 
-  function renderItems() {
-    itemsList.innerHTML = '';
-    items.forEach((item, i) => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
-      card.draggable = true;
-      card.dataset.index = i;
+  renderItems();
 
-      card.innerHTML = `
-        <img src="${item.img}" alt="Zdjęcie ${item.name}" class="item-image" />
-        <div class="item-name">${item.name}</div>
-        <div class="item-description">${item.desc}</div>
-        <div class="item-buttons">
-          <button class="edit-btn">Edytuj</button>
-          <button class="delete delete-btn">Usuń</button>
-        </div>
-      `;
-
-      itemsList.appendChild(card);
-
-      const editBtn = card.querySelector('.edit-btn');
-      const deleteBtn = card.querySelector('.delete-btn');
-
-      editBtn.addEventListener('click', () => {
-        editingIndex = i;
-        document.getElementById('item-name').value = item.name;
-        document.getElementById('item-description').value = item.desc;
-        imageUrlInput.value = '';
-        imageFileInput.value = '';
-        window.scrollTo({top: 0, behavior: 'smooth'});
-      });
-
-      deleteBtn.addEventListener('click', () => {
-        if(confirm(`Czy na pewno chcesz usunac przedmiot "${item.name}" ?`)){
-          items.splice(i, 1);
-          renderItems();
-        }
-      });
-
-      card.addEventListener('dragstart', (e) => {
-        card.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', i);
-      });
-
-      card.addEventListener('dragend', () => {
-        card.classList.remove('dragging');
-      });
-    });
-
-    enableDragAndDrop();
-  }
-
-  function enableDragAndDrop() {
-    const cards = document.querySelectorAll('.item-card');
-    cards.forEach(card => {
-      card.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const draggingCard = document.querySelector('.dragging');
-        if (card === draggingCard) return;
-
-        const draggingIndex = parseInt(draggingCard.dataset.index);
-        const targetIndex = parseInt(card.dataset.index);
-
-        if (draggingIndex === targetIndex) return;
-
-        if (draggingIndex < targetIndex) {
-          card.after(draggingCard);
-          moveItem(draggingIndex, targetIndex);
-        } else {
-          card.before(draggingCard);
-          moveItem(draggingIndex, targetIndex);
-        }
-      });
-    });
-  }
-
-  function moveItem(from, to) {
-    const item = items.splice(from, 1)[0];
-    items.splice(to, 0, item);
-    renderItems();
-  }
 </script>
 </body>
 </html>
