@@ -1,176 +1,197 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Panel administracyjny - Repliki</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: Roboto, sans-serif;
-      margin: 0;
-      background: #f5f5f5;
-      color: #202124;
-    }
-    #item-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 24px;
-      padding: 40px 20px;
-    }
-    .item-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      width: 280px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-    .item-card img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-    .card-content {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-    .card-content h3 {
-      margin: 0 0 8px;
-      font-size: 18px;
-      color: #202124;
-    }
-    .card-content p {
-      margin: 0 0 16px;
-      font-size: 14px;
-      color: #5f6368;
-      flex-grow: 1;
-    }
-    .btn {
-      padding: 8px;
-      margin: 4px 0;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      color: white;
-    }
-    .btn-delete {
-      background: #d93025;
-    }
-    .btn-delete:hover {
-      background: #a52714;
-    }
-    .btn-edit {
-      background: #f9ab00;
-    }
-    .btn-edit:hover {
-      background: #c57a00;
-    }
-    input[type="file"] {
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FireReps – zarządzanie przedmiotami</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  body { font-family:'Roboto',sans-serif; margin:0; background:#f5f5f5; color:#202124 }
+  header { background:#fff; padding:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.1) }
+  header h1 { margin:0; font-size:20px }
+  header button { padding:8px 16px; border:none; background:#1a73e8; color:#fff; border-radius:4px; cursor:pointer }
+  main { padding:20px; max-width:1000px; margin:auto }
+  #item-container { display:flex; flex-wrap:wrap; gap:24px; justify-content:center }
+  .item-card { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:280px; overflow:hidden; display:flex; flex-direction:column; }
+  .item-card img { width:100%; height:180px; object-fit:cover }
+  .card-content { padding:16px; flex:1; display:flex; flex-direction:column }
+  .card-content h3 { margin:0 0 8px; font-size:18px }
+  .card-content p { margin:0 0 16px; font-size:14px; color:#5f6368; flex:1 }
+  .card-buttons { display:flex; gap:8px }
+  .btn { flex:1; padding:10px; border:none; border-radius:8px; font-weight:500; cursor:pointer; color:#fff }
+  .btn-edit { background:#f9ab00 }
+  .btn-del { background:#d93025 }
+  #add-item-panel, #edit-item-panel { background:#fff; max-width:320px; padding:20px; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.12); position:fixed; top:80px; right:20px; display:none; flex-direction:column; gap:12px; z-index:100 }
+  #add-item-panel input, #add-item-panel textarea, #edit-item-panel input, #edit-item-panel textarea { padding:10px; border:1px solid #dadce0; border-radius:8px; font-size:14px }
+  .drop-area { border:2px dashed #1a73e8; padding:20px; text-align:center; border-radius:8px; color:#1a73e8; cursor:pointer }
+  .drop-area.highlight { background:rgba(26,115,232,0.1) }
+  .confirm-modal { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200 }
+  .confirm-box { background:#fff;padding:24px;border-radius:12px;text-align:center; }
+  .confirm-box button { margin:0 8px;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;color:#fff }
+  .btn-yes { background:#d93025 }
+  .btn-no { background:#5f6368 }
+  #add-new-btn { position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;background:#1a73e8;color:#fff;font-size:36px;display:none;cursor:pointer;justify-content:center;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+</style>
 </head>
 <body>
-  <h1 style="text-align: center;">Panel administracyjny - Repliki</h1>
-  <main id="item-container"></main>
+<header><h1>FireReps</h1><button id="login-btn">Zaloguj się</button></header>
+<main><div id="item-container"></div></main>
+<div id="add-item-panel">
+  <h2>Dodaj przedmiot</h2>
+  <input type="text" id="add-name" placeholder="Nazwa" required />
+  <textarea id="add-desc" placeholder="Opis" rows="3"></textarea>
+  <input type="url" id="add-link" placeholder="Link (opcjonalnie)" />
+  <div class="drop-area" id="add-drop">Przeciągnij zdjęcie lub kliknij</div>
+  <input type="file" id="add-image" accept="image/*" style="display:none" />
+  <button id="add-submit">Dodaj</button>
+</div>
+<div id="edit-item-panel">
+  <h2>Edytuj przedmiot</h2>
+  <input type="text" id="edit-name" placeholder="Nazwa" required />
+  <textarea id="edit-desc" placeholder="Opis" rows="3"></textarea>
+  <input type="url" id="edit-link" placeholder="Link" />
+  <div class="drop-area" id="edit-drop">Przeciągnij zdjęcie lub kliknij</div>
+  <input type="file" id="edit-image" accept="image/*" style="display:none" />
+  <button id="edit-submit">Zapisz zmiany</button>
+</div>
+<div class="confirm-modal" id="confirm-modal"><div class="confirm-box"><p>Czy na pewno chcesz usunąć ten przedmiot?</p><button class="btn-yes">Tak</button><button class="btn-no">Nie</button></div></div>
+<div id="add-new-btn">+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
-      authDomain: "spridszit-firerepy.firebaseapp.com",
-      databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "spridszit-firerepy",
-      storageBucket: "spridszit-firerepy.appspot.com",
-      messagingSenderId: "963006920352",
-      appId: "1:963006920352:web:58538b879f004c02873bc5"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const itemsRef = ref(db, 'items');
+const firebaseConfig = { /* twój config */ };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const storage = getStorage(app);
+const itemsRef = ref(db, 'items');
 
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+const loginBtn=document.getElementById('login-btn');
+const addNewBtn=document.getElementById('add-new-btn');
+const addPanel=document.getElementById('add-item-panel');
+const editPanel=document.getElementById('edit-item-panel');
+const confirmModal=document.getElementById('confirm-modal');
+let isAdmin = false;
+let editingKey = null;
+let deleteKey = null;
+let addFile = null;
+let editFile = null;
 
-    function renderItems(data) {
-      const container = document.getElementById('item-container');
-      container.innerHTML = '';
-      if (!data) return;
-      Object.entries(data).forEach(([key, item]) => {
-        const card = document.createElement('div');
-        card.className = 'item-card';
-        const img = document.createElement('img');
-        img.src = item.image;
-        card.appendChild(img);
+function toggleAdminUI(){
+  if(isAdmin){
+    loginBtn.textContent='Wyloguj';
+    addNewBtn.style.display='flex';
+  } else {
+    loginBtn.textContent='Zaloguj się';
+    addNewBtn.style.display='none';
+    addPanel.style.display='none';
+    editPanel.style.display='none';
+  }
+}
 
-        const cont = document.createElement('div');
-        cont.className = 'card-content';
-        const h3 = document.createElement('h3');
-        h3.textContent = item.name;
-        const p = document.createElement('p');
-        p.textContent = item.description;
-        cont.append(h3, p);
+loginBtn.onclick=()=>{
+  if(isAdmin){
+    isAdmin=false; localStorage.removeItem('isAdmin');
+    toggleAdminUI();
+    renderItems();
+    return;
+  }
+  const u=prompt('Login:'), p=prompt('Hasło:');
+  if(u==='ifirelovereps'&&p==='fi123re987re098ps321'){
+    isAdmin=true; localStorage.setItem('isAdmin','true');
+    toggleAdminUI();
+    alert('Witaj, adminie!');
+    renderItems();
+  } else alert('Nieprawidłowe dane');
+};
 
-        if (isAdmin) {
-          const del = document.createElement('button');
-          del.textContent = 'Usuń przedmiot';
-          del.className = 'btn btn-delete';
-          del.onclick = () => {
-            if (confirm('Czy na pewno chcesz usunąć ten przedmiot?')) {
-              remove(ref(db, 'items/' + key));
-            }
-          };
+addNewBtn.onclick=()=>{ addPanel.style.display='flex'; };
 
-          const edit = document.createElement('button');
-          edit.textContent = 'Edytuj przedmiot';
-          edit.className = 'btn btn-edit';
-          edit.onclick = () => {
-            const newName = prompt('Podaj nową nazwę:', item.name);
-            const newDesc = prompt('Podaj nowy opis:', item.description);
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = () => {
-              const file = input.files[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                  const newImg = e.target.result;
-                  update(ref(db, 'items/' + key), {
-                    name: newName,
-                    description: newDesc,
-                    image: newImg
-                  });
-                };
-                reader.readAsDataURL(file);
-              } else {
-                update(ref(db, 'items/' + key), {
-                  name: newName,
-                  description: newDesc
-                });
-              }
-            };
-            input.click();
-          };
-          cont.append(edit, del);
-        }
+function setupDrop(dropArea, input, fileSetter){
+  dropArea.onclick=()=>input.click();
+  dropArea.ondragover=e=>{ e.preventDefault(); dropArea.classList.add('highlight'); };
+  dropArea.ondragleave=_=>dropArea.classList.remove('highlight');
+  dropArea.ondrop=e=>{ e.preventDefault(); dropArea.classList.remove('highlight'); fileSetter(e.dataTransfer.files[0]); };
+  input.onchange=_=>fileSetter(input.files[0]);
+}
 
-        card.append(cont);
-        container.appendChild(card);
-      });
+setupDrop(document.getElementById('add-drop'), document.getElementById('add-image'), f=>{ addFile=f; });
+setupDrop(document.getElementById('edit-drop'), document.getElementById('edit-image'), f=>{ editFile=f; });
+
+document.getElementById('add-submit').onclick=async()=>{
+  const name=document.getElementById('add-name').value.trim();
+  const desc=document.getElementById('add-desc').value.trim();
+  const link=document.getElementById('add-link').value.trim()||'';
+  if(!name||!addFile){ return alert('Podaj nazwę i dodaj zdjęcie'); }
+  const refImg = sref(storage, 'items/'+Date.now()+'_'+addFile.name);
+  await uploadBytes(refImg,addFile);
+  const url=await getDownloadURL(refImg);
+  await push(itemsRef, {name,description:desc,link,image:url});
+  addPanel.style.display='none';
+  renderItems();
+};
+
+function renderItems(){
+  onValue(itemsRef, snap=>{
+    const data=snap.val()||{};
+    const container=document.getElementById('item-container');
+    container.innerHTML='';
+    for(const [key,item] of Object.entries(data)){
+      const card=document.createElement('div'); card.className='item-card';
+      const img=document.createElement('img'); img.src=item.image;
+      const content=document.createElement('div'); content.className='card-content';
+      const h3=document.createElement('h3'); h3.textContent=item.name;
+      const p=document.createElement('p'); p.textContent=item.description;
+      content.append(h3,p);
+      if(item.link){ const a=document.createElement('a'); a.href=item.link; a.textContent='Kup teraz'; a.target='_blank'; content.appendChild(a); }
+      if(isAdmin){
+        const btns=document.createElement('div'); btns.className='card-buttons';
+        const editBtn=document.createElement('button'); editBtn.textContent='Edytuj'; editBtn.className='btn btn-edit';
+        editBtn.onclick=()=>{ editingKey=key;
+          document.getElementById('edit-name').value=item.name;
+          document.getElementById('edit-desc').value=item.description;
+          document.getElementById('edit-link').value=item.link;
+          editPanel.style.display='flex';
+        };
+        const delBtn=document.createElement('button'); delBtn.textContent='Usuń'; delBtn.className='btn btn-del';
+        delBtn.onclick=()=>{ deleteKey=key; confirmModal.style.display='flex'; };
+        btns.append(editBtn,delBtn); content.appendChild(btns);
+      }
+      card.append(img,content);
+      container.appendChild(card);
     }
+  }, {onlyOnce:true});
+}
+renderItems();
+toggleAdminUI();
 
-    onValue(itemsRef, snapshot => {
-      renderItems(snapshot.val());
-    });
-  </script>
+document.getElementById('edit-submit').onclick=async()=>{
+  if(!editingKey) return;
+  const name=document.getElementById('edit-name').value.trim();
+  const desc=document.getElementById('edit-desc').value.trim();
+  const link=document.getElementById('edit-link').value.trim()||'';
+  const updates={name,description:desc,link};
+  if(editFile){
+    const refImg=sref(storage, 'items/'+Date.now()+'_'+editFile.name);
+    await uploadBytes(refImg,editFile);
+    const url=await getDownloadURL(refImg);
+    updates.image=url;
+  }
+  await update(ref(db,'items/'+editingKey),updates);
+  editPanel.style.display='none';
+  renderItems();
+};
+
+document.querySelector('.btn-yes').onclick=()=>{
+  if(deleteKey) remove(ref(db,'items/'+deleteKey));
+  confirmModal.style.display='none';
+};
+
+document.querySelector('.btn-no').onclick=()=>{
+  confirmModal.style.display='none';
+};
+</script>
 </body>
 </html>
