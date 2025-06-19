@@ -50,16 +50,7 @@
   .item-delete-button { position: absolute; top: 8px; left: 8px; background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background-color 0.2s; }
   .item-delete-button:hover { background-color: #dc2626; }
 
-  /* --- POPRAWIONY STYL MODALI --- */
-  .modal-overlay {
-    display: none; /* Domyślnie ukryty! */
-    position: fixed;
-    z-index: 1100;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    justify-content: center;
-    align-items: center;
-  }
+  .modal-overlay { display: none; position: fixed; z-index: 1100; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; }
   .modal-content { background: var(--primary-color); padding: 25px 30px; border-radius: 12px; width: 380px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
   .modal-content h2 { color: var(--text-color); font-weight: 800; font-size: 22px; margin: 0 0 20px 0; text-align: center; }
   .modal-content .form-group { margin-bottom: 15px; }
@@ -99,9 +90,9 @@
       </button>
       <div class="filter-dropdown" id="filter-dropdown">
           <button data-filter="all" class="active">Wszystkie</button>
-          <button data-filter="isNew">❤️ NEW</button>
+          <button data-filter="isNew">⭐ NEW</button>
           <button data-filter="isBest">⭐ BEST</button>
-          <button data-filter="isBudget">💸 BUDGET</button>
+          <button data-filter="isBudget">$ BUDGET</button>
       </div>
     </div>
     <input type="search" class="search-input" id="search-input" placeholder="Wyszukaj po nazwie...">
@@ -145,20 +136,11 @@
 </div>
 
 <script type="module">
+// Zmieniono importy, dodano 'update'
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, onValue, push, set, remove, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-// Tu wklej swoją konfigurację Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
-  authDomain: "spridszit-firerepy.firebaseapp.com",
-  databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "spridszit-firerepy",
-  storageBucket: "spridszit-firerepy.appspot.com",
-  messagingSenderId: "963006920352",
-  appId: "1:963006920352:web:58538b879f004c02873bc5"
-};
-
+const firebaseConfig = { /* Twoja konfiguracja Firebase */ };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -170,74 +152,73 @@ let allItems = {};
 let activeFilter = 'all';
 let searchTerm = '';
 
+// --- POCZĄTEK NOWEJ FUNKCJI ---
+/**
+ * Sprawdza wszystkie przedmioty i usuwa tag "NEW", jeśli przedmiot jest starszy niż 3 dni.
+ * @param {object} items - Obiekt ze wszystkimi przedmiotami z bazy danych.
+ */
+function checkAndExpireNewTags(items) {
+    const now = new Date();
+    const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+
+    for (const key in items) {
+        const item = items[key];
+        // Sprawdź, czy przedmiot ma tag 'isNew' i datę utworzenia
+        if (item.tags && item.tags.isNew && item.createdAt) {
+            const createdAtDate = new Date(item.createdAt);
+            const ageInMillis = now - createdAtDate;
+
+            if (ageInMillis > threeDaysInMillis) {
+                console.log(`Tag "NEW" wygasł dla przedmiotu: ${item.name}. Aktualizowanie bazy danych...`);
+                // Przygotuj ścieżkę do aktualizacji
+                const itemRef = ref(db, `items/${key}/tags`);
+                // Zaktualizuj tylko pole isNew na false
+                update(itemRef, { isNew: false });
+            }
+        }
+    }
+}
+// --- KONIEC NOWEJ FUNKCJI ---
+
 // Elementy UI
 const loginButton = document.getElementById("login-button"), logoutButton = document.getElementById("logout-button");
 const addItemButton = document.getElementById("add-item-button"), itemsContainer = document.getElementById("items-container");
 const searchInput = document.getElementById("search-input");
 const filterBtn = document.getElementById('filter-btn'), filterDropdown = document.getElementById('filter-dropdown');
-
-// Modale
 const loginModal = document.getElementById("login-modal"), addItemModal = document.getElementById("add-item-modal");
 const loginSubmit = document.getElementById("login-submit"), addItemSubmit = document.getElementById("add-item-submit");
 const addItemCancel = document.getElementById("add-item-cancel"), addItemLoader = document.getElementById("add-item-loader");
 
-// Funkcje pomocnicze
 const showModal = (modal) => { modal.style.display = "flex"; };
 const hideModal = (modal) => { modal.style.display = "none"; };
 
-// Logika UI
 const updateUIForAdmin = () => { loginButton.style.display = "none"; addItemButton.style.display = "inline-block"; logoutButton.style.display = "inline-block"; displayFilteredItems(); };
 const updateUIForGuest = () => { loginButton.style.display = "inline-block"; addItemButton.style.display = "none"; logoutButton.style.display = "none"; displayFilteredItems(); };
 
-// Główna funkcja renderująca
 function renderItems(itemsToRender) {
   itemsContainer.innerHTML = "";
   for (const key in itemsToRender) {
     const item = itemsToRender[key];
     const card = document.createElement("div");
     card.className = "item-card";
-
     let badgesHTML = '';
     if (item.tags) {
-        if (item.tags.isNew) badgesHTML += `<span class="badge badge-new">❤️ NEW</span>`;
+        if (item.tags.isNew) badgesHTML += `<span class="badge badge-new">⭐ NEW</span>`;
         if (item.tags.isBest) badgesHTML += `<span class="badge badge-best">⭐ BEST</span>`;
-        if (item.tags.isBudget) badgesHTML += `<span class="badge badge-budget">💸 BUDGET</span>`;
+        if (item.tags.isBudget) badgesHTML += `<span class="badge badge-budget">$ BUDGET</span>`;
     }
-
-    card.innerHTML = `
-      ${isAdmin ? `<button class="item-delete-button" data-key="${key}" title="Usuń przedmiot">×</button>` : ''}
-      <div class="item-image-wrapper">
-        <img src="${item.image || 'https://via.placeholder.com/220'}" alt="${item.name}" loading="lazy">
-        <div class="card-badges">${badgesHTML}</div>
-      </div>
-      <div class="item-info">
-        <div class="item-title">${item.name || 'Brak nazwy'}</div>
-        <div class="item-description">${item.description || ''}</div>
-        <div class="item-price">${item.price ? `${item.price} PLN` : ''}</div>
-        ${item.purchaseLink ? `<a href="${item.purchaseLink}" class="item-buy-button" target="_blank" rel="noopener noreferrer">Kup</a>` : `<button class="item-buy-button disabled" disabled>Brak linku</button>`}
-      </div>`;
+    card.innerHTML = `${isAdmin ? `<button class="item-delete-button" data-key="${key}" title="Usuń przedmiot">×</button>` : ''}<div class="item-image-wrapper"><img src="${item.image || 'https://via.placeholder.com/220'}" alt="${item.name}" loading="lazy"><div class="card-badges">${badgesHTML}</div></div><div class="item-info"><div class="item-title">${item.name || 'Brak nazwy'}</div><div class="item-description">${item.description || ''}</div><div class="item-price">${item.price ? `${item.price} PLN` : ''}</div>${item.purchaseLink ? `<a href="${item.purchaseLink}" class="item-buy-button" target="_blank" rel="noopener noreferrer">Kup</a>` : `<button class="item-buy-button disabled" disabled>Brak linku</button>`}</div>`;
     itemsContainer.appendChild(card);
   }
 }
 
 function displayFilteredItems() {
     let filteredItems = { ...allItems };
-
-    if (activeFilter !== 'all') {
-        filteredItems = Object.fromEntries(
-            Object.entries(filteredItems).filter(([, item]) => item.tags && item.tags[activeFilter])
-        );
-    }
-    if (searchTerm) {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        filteredItems = Object.fromEntries(
-            Object.entries(filteredItems).filter(([, item]) => item.name.toLowerCase().includes(lowerCaseSearchTerm))
-        );
-    }
+    if (activeFilter !== 'all') { filteredItems = Object.fromEntries(Object.entries(filteredItems).filter(([, item]) => item.tags && item.tags[activeFilter])); }
+    if (searchTerm) { const lowerCaseSearchTerm = searchTerm.toLowerCase(); filteredItems = Object.fromEntries(Object.entries(filteredItems).filter(([, item]) => item.name.toLowerCase().includes(lowerCaseSearchTerm))); }
     renderItems(filteredItems);
 }
 
-// Logika eventów
 loginButton.onclick = () => showModal(loginModal);
 logoutButton.onclick = () => { isAdmin = false; updateUIForGuest(); };
 addItemButton.onclick = () => {
@@ -262,13 +243,13 @@ addItemSubmit.onclick = async () => {
   const price = document.getElementById('item-price-input').value.trim();
   const purchaseLink = document.getElementById('item-link-input').value.trim();
   const image = document.getElementById('item-image-input').value.trim();
-  if (!name || !price || !purchaseLink || !image) { alert("Wypełnij wymagane pola: Nazwa, Cena, Link do zakupu, Link do zdjęcia."); return; }
+  if (!name || !price || !purchaseLink || !image) { alert("Wypełnij wymagane pola."); return; }
   
   const newItemData = {
     name, description: document.getElementById('item-desc-input').value.trim(),
     price: Number(price), purchaseLink, image,
     tags: { isNew: document.getElementById('tag-new').checked, isBest: document.getElementById('tag-best').checked, isBudget: document.getElementById('tag-budget').checked, },
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString() // Kluczowe dla funkcji wygasania!
   };
 
   addItemLoader.style.display = 'flex';
@@ -300,9 +281,15 @@ filterDropdown.addEventListener('click', (e) => {
 });
 document.addEventListener('click', (e) => { if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) { filterDropdown.style.display = 'none'; } });
 
-// Inicjalizacja
 updateUIForGuest();
-onValue(ref(db, "items"), (snapshot) => { allItems = snapshot.val() || {}; displayFilteredItems(); });
+onValue(ref(db, "items"), (snapshot) => {
+    const data = snapshot.val() || {};
+    // --- WYWOŁANIE NOWEJ FUNKCJI PRZED WYŚWIETLENIEM ---
+    checkAndExpireNewTags(data);
+    allItems = data;
+    displayFilteredItems();
+});
+
 </script>
 </body>
 </html>
