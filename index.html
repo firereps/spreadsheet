@@ -3,201 +3,148 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Panel przedmiotów z Firebase</title>
+<title>FireReps Spreadsheet</title>
 <style>
+  /* ogolny styl */
   body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    margin: 0; padding: 0;
+    margin: 0;
+    background: #0d1117;
+    font-family: 'Arial Black', Arial, sans-serif;
+    color: #c9d1d9;
   }
+
+  /* header z napisem zamiast logo */
   header {
-    background: #222;
-    color: #fff;
-    padding: 15px;
-    text-align: center;
-  }
-  #login-button,
-  #logout-button,
-  #add-item-button,
-  #login-submit,
-  #item-save-btn,
-  .btn-edit,
-  .btn-delete,
-  .btn-buy {
-    font-size: 16px;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
+    background: #161b22;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     user-select: none;
+    border-bottom: 1px solid #30363d;
   }
+
+  /* przycisk zaloguj sie */
   #login-button {
     position: fixed;
-    top: 15px;
+    top: 12px;
     right: 15px;
-    background: #007bff;
+    background: #238636;
     border: none;
-    color: white;
+    color: #c9d1d9;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease;
     z-index: 1000;
   }
+  #login-button:hover {
+    background: #2ea043;
+  }
+
   #logout-button {
     position: fixed;
-    top: 15px;
+    top: 12px;
     right: 15px;
-    background: #dc3545;
+    background: #8b0000;
     border: none;
-    color: white;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    user-select: none;
     display: none;
     z-index: 1000;
   }
-  #add-item-button {
-    background: #28a745;
-    border: none;
-    color: white;
-    margin: 15px auto;
-    display: block;
-    width: 150px;
+  #logout-button:hover {
+    background: #a00b0b;
   }
-  #login-modal, #item-modal {
-    display: none;
-    position: fixed;
-    z-index: 1100;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
+
+  /* kontener na itemy - flex, grid styl */
+  #items-container {
+    max-width: 1200px;
+    margin: 60px auto 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(210px,1fr));
+    gap: 18px;
+    padding: 0 15px;
   }
-  #login-modal.active, #item-modal.active {
-    display: flex;
-  }
-  .modal-content {
-    background: #fff;
-    padding: 20px 25px;
-    border-radius: 8px;
-    width: 320px;
-    box-shadow: 0 0 10px #0003;
-    position: relative;
-  }
-  .modal-content h2 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    text-align: center;
-  }
-  .modal-content input, .modal-content textarea {
-    width: 100%;
-    margin-bottom: 12px;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
+
+  /* pojedynczy item card */
   .item-card {
-    background: white;
-    border-radius: 8px;
-    width: 200px;
-    padding: 15px;
-    box-shadow: 0 0 8px #0002;
+    background: #161b22;
+    border-radius: 15px;
+    box-shadow: 0 0 12px #238636aa;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    user-select: none;
+    transition: box-shadow 0.3s ease;
   }
+  .item-card:hover {
+    box-shadow: 0 0 20px #2ea043cc;
+  }
+
+  /* obrazek w item */
+  .item-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: #0d1117;
+    padding: 10px;
+  }
+
+  /* tekst nazwy itemu */
   .item-title {
-    font-weight: bold;
+    font-weight: 800;
     font-size: 18px;
-    margin-bottom: 10px;
-    min-height: 44px;
+    padding: 8px 15px 0 15px;
+    min-height: 48px;
+    color: #c9d1d9;
   }
-  .item-desc {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 12px;
-    min-height: 60px;
-  }
-  .item-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 6px;
-  }
-  .btn-edit, .btn-delete {
-    flex: 1;
-    font-size: 15px;
-    padding: 10px 14px;
+
+  /* cena pod nazwa */
+  .item-price {
     font-weight: 700;
-    cursor: pointer;
-    border-radius: 8px;
-    user-select: none;
+    font-size: 16px;
+    padding: 2px 15px 10px 15px;
+    color: #238636;
   }
-  .btn-edit {
-    background: #ffc107;
-    border: none;
-    color: #333;
-  }
-  .btn-delete {
-    background: #dc3545;
-    color: white;
-    border: none;
-  }
-  .btn-buy {
-    background: #28a745;
-    border: none;
-    color: white;
-    padding: 12px 0;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 700;
-    margin-top: auto;
-    font-size: 17px;
-    user-select: none;
-  }
-  #items-container {
-    max-width: 900px;
-    margin: 30px auto;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-  }
+
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Panel przedmiotów</h1>
-</header>
+<header>FireReps Spreadsheet</header>
 
-<button id="login-button">Zaloguj się</button>
-<button id="logout-button">Wyloguj się</button>
-
-<button id="add-item-button" style="display:none;">Dodaj przedmiot</button>
+<button id="login-button">Zaloguj sie</button>
+<button id="logout-button">Wyloguj sie</button>
 
 <div id="items-container"></div>
 
 <!-- modal logowania -->
-<div id="login-modal">
-  <div class="modal-content">
-    <h2>Logowanie Admin</h2>
-    <input type="text" id="login-username" placeholder="Nazwa użytkownika" />
-    <input type="password" id="login-password" placeholder="Hasło" />
-    <button id="login-submit">Zaloguj</button>
-  </div>
-</div>
-
-<!-- modal dodawania/edycji przedmiotu -->
-<div id="item-modal">
-  <div class="modal-content">
-    <h2 id="modal-title">Dodaj przedmiot</h2>
-    <input type="text" id="item-name" placeholder="Nazwa przedmiotu" />
-    <textarea id="item-desc" placeholder="Opis przedmiotu" rows="3"></textarea>
-    <input type="url" id="item-link" placeholder="Link do przedmiotu (URL)" />
-    <input type="url" id="item-image" placeholder="Link do obrazka (Imgur itp)" />
-    <button id="item-save-btn">Zapisz</button>
+<div id="login-modal" style="display:none; position:fixed; z-index:1100; inset:0; background:rgba(0,0,0,0.75); display:flex; justify-content:center; align-items:center;">
+  <div style="background:#161b22; padding:25px 30px; border-radius: 12px; width:320px; box-shadow: 0 0 20px #238636cc;">
+    <h2 style="color:#c9d1d9; font-weight: 900; font-size: 24px; margin:0 0 15px 0; text-align:center;">Logowanie Admin</h2>
+    <input id="login-username" type="text" placeholder="Nazwa uzytkownika" style="width:100%; margin-bottom:12px; padding:10px; border-radius:8px; border:none; font-size:16px;" />
+    <input id="login-password" type="password" placeholder="Haslo" style="width:100%; margin-bottom:15px; padding:10px; border-radius:8px; border:none; font-size:16px;" />
+    <button id="login-submit" style="width:100%; background:#238636; border:none; padding:12px; border-radius:12px; font-weight:700; color:#c9d1d9; cursor:pointer; font-size:18px;">Zaloguj</button>
   </div>
 </div>
 
 <script type="module">
-// Firebase config i init
+// firebase config i init
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
@@ -212,136 +159,72 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let isAdmin = false;
-let editingItemKey = null;
-
-// DOM refs
 const loginButton = document.getElementById("login-button");
 const logoutButton = document.getElementById("logout-button");
-const addItemButton = document.getElementById("add-item-button");
 const loginModal = document.getElementById("login-modal");
-const itemModal = document.getElementById("item-modal");
 const loginSubmit = document.getElementById("login-submit");
-const itemsContainer = document.getElementById("items-container");
-const modalTitle = document.getElementById("modal-title");
-const itemNameInput = document.getElementById("item-name");
-const itemDescInput = document.getElementById("item-desc");
-const itemLinkInput = document.getElementById("item-link");
-const itemImageInput = document.getElementById("item-image");
-const itemSaveBtn = document.getElementById("item-save-btn");
 const loginUsername = document.getElementById("login-username");
 const loginPassword = document.getElementById("login-password");
+const itemsContainer = document.getElementById("items-container");
 
-// admin dane
 const ADMIN_USER = "ifirelovereps";
 const ADMIN_PASS = "fi123re987re098ps321";
 
+let isAdmin = false;
+
 function showLoginModal() {
-  loginModal.classList.add("active");
+  loginModal.style.display = "flex";
   loginUsername.value = "";
   loginPassword.value = "";
   loginUsername.focus();
 }
 function hideLoginModal() {
-  loginModal.classList.remove("active");
-}
-function showItemModal(edit = false) {
-  itemModal.classList.add("active");
-  if (!edit) {
-    modalTitle.textContent = "Dodaj przedmiot";
-    itemNameInput.value = "";
-    itemDescInput.value = "";
-    itemLinkInput.value = "";
-    itemImageInput.value = "";
-    editingItemKey = null;
-  }
-}
-function hideItemModal() {
-  itemModal.classList.remove("active");
-}
-
-function renderItems(items) {
-  itemsContainer.innerHTML = "";
-  for (const key in items) {
-    const item = items[key];
-    const card = document.createElement("div");
-    card.className = "item-card";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "item-title";
-    titleEl.textContent = item.name;
-    card.appendChild(titleEl);
-
-    if(item.image) {
-      const imgEl = document.createElement("img");
-      imgEl.src = item.image;
-      imgEl.alt = item.name;
-      imgEl.style.width = "100%";
-      imgEl.style.borderRadius = "6px";
-      imgEl.style.marginBottom = "12px";
-      card.appendChild(imgEl);
-    }
-
-    const descEl = document.createElement("div");
-    descEl.className = "item-desc";
-    descEl.textContent = item.description;
-    card.appendChild(descEl);
-
-    if (isAdmin) {
-      const btns = document.createElement("div");
-      btns.className = "item-buttons";
-
-      const editBtn = document.createElement("button");
-      editBtn.className = "btn-edit";
-      editBtn.textContent = "Edytuj";
-      editBtn.onclick = () => {
-        editingItemKey = key;
-        modalTitle.textContent = "Edytuj przedmiot";
-        itemNameInput.value = item.name;
-        itemDescInput.value = item.description;
-        itemLinkInput.value = item.link || "";
-        itemImageInput.value = item.image || "";
-        showItemModal(true);
-      };
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "btn-delete";
-      deleteBtn.textContent = "Usuń";
-      deleteBtn.onclick = () => {
-        if (confirm("Czy na pewno chcesz usunąć ten przedmiot?")) {
-          remove(ref(db, "items/" + key));
-        }
-      };
-
-      btns.appendChild(editBtn);
-      btns.appendChild(deleteBtn);
-      card.appendChild(btns);
-    }
-
-    if (item.link) {
-      const buyBtn = document.createElement("button");
-      buyBtn.className = "btn-buy";
-      buyBtn.textContent = "Kup teraz";
-      buyBtn.onclick = () => {
-        window.open(item.link, "_blank");
-      };
-      card.appendChild(buyBtn);
-    }
-
-    itemsContainer.appendChild(card);
-  }
+  loginModal.style.display = "none";
 }
 
 function updateUIForAdmin() {
   loginButton.style.display = "none";
   logoutButton.style.display = "block";
-  addItemButton.style.display = "block";
 }
-
 function updateUIForGuest() {
   loginButton.style.display = "block";
   logoutButton.style.display = "none";
-  addItemButton.style.display = "none";
+}
+
+function renderItems(items) {
+  itemsContainer.innerHTML = "";
+  for(const key in items) {
+    const item = items[key];
+    const card = document.createElement("div");
+    card.className = "item-card";
+
+    if(item.image) {
+      const img = document.createElement("img");
+      img.src = item.image;
+      img.alt = item.name;
+      card.appendChild(img);
+    }
+
+    const title = document.createElement("div");
+    title.className = "item-title";
+    title.textContent = item.name;
+    card.appendChild(title);
+
+    if(item.price) {
+      const price = document.createElement("div");
+      price.className = "item-price";
+      price.textContent = item.price + " PLN";
+      card.appendChild(price);
+    } else if(item.description) {
+      const desc = document.createElement("div");
+      desc.className = "item-price";
+      desc.style.color = "#8b949e";
+      desc.textContent = item.description;
+      card.appendChild(desc);
+    }
+
+    itemsContainer.appendChild(card);
+  }
 }
 
 function fetchAndRenderItems() {
@@ -352,72 +235,36 @@ function fetchAndRenderItems() {
   });
 }
 
-loginButton.addEventListener("click", () => {
+loginButton.onclick = () => {
   showLoginModal();
-});
+};
 
-logoutButton.addEventListener("click", () => {
+logoutButton.onclick = () => {
   isAdmin = false;
   updateUIForGuest();
   fetchAndRenderItems();
-});
+};
 
-loginSubmit.addEventListener("click", () => {
+loginSubmit.onclick = () => {
   const user = loginUsername.value.trim();
   const pass = loginPassword.value.trim();
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+  if(user === ADMIN_USER && pass === ADMIN_PASS) {
     isAdmin = true;
     hideLoginModal();
     updateUIForAdmin();
     fetchAndRenderItems();
   } else {
-    alert("Niepoprawny login lub haslo");
+    alert("niepoprawny login lub haslo");
   }
-});
+};
 
-addItemButton.addEventListener("click", () => {
-  showItemModal();
-});
-
-itemSaveBtn.addEventListener("click", () => {
-  const name = itemNameInput.value.trim();
-  const desc = itemDescInput.value.trim();
-  const link = itemLinkInput.value.trim();
-  const image = itemImageInput.value.trim();
-
-  if (!name || !desc) {
-    alert("Prosze podac nazwe i opis przedmiotu");
-    return;
-  }
-
-  if (editingItemKey) {
-    update(ref(db, "items/" + editingItemKey), {
-      name,
-      description: desc,
-      link,
-      image
-    });
-  } else {
-    push(ref(db, "items"), {
-      name,
-      description: desc,
-      link,
-      image
-    });
-  }
-  hideItemModal();
-});
-
-loginModal.addEventListener("click", (e) => {
-  if (e.target === loginModal) hideLoginModal();
-});
-
-itemModal.addEventListener("click", (e) => {
-  if (e.target === itemModal) hideItemModal();
-});
+loginModal.onclick = (e) => {
+  if(e.target === loginModal) hideLoginModal();
+};
 
 updateUIForGuest();
 fetchAndRenderItems();
+
 </script>
 
 </body>
