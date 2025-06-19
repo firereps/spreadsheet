@@ -1,53 +1,252 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <title>spreadsheet repy</title>
-  <script type="module">
-    // firebase 9+ modular imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
-      authDomain: "spridszit-firerepy.firebaseapp.com",
-      databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "spridszit-firidepy",
-      storageBucket: "spridszit-firerepy.firebasestorage.app",
-      messagingSenderId: "963006920352",
-      appId: "1:963006920352:web:58538b879f004c02873bc5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const listaRef = ref(db, 'lista');
-
-    window.dodaj = function() {
-      const input = document.getElementById('input');
-      const val = input.value.trim();
-      if (val) {
-        push(listaRef, val);
-        input.value = '';
-      }
-    };
-
-    window.onload = () => {
-      const ul = document.getElementById('lista');
-      onChildAdded(listaRef, (data) => {
-        const li = document.createElement('li');
-        li.textContent = data.val();
-        ul.appendChild(li);
-      });
-    };
-  </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FireReps Spreadsheet - Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+    <style id="page-styles">
+        /* --- GŁÓWNE STYLE STRONY --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            transition: filter 0.3s ease-in-out;
+        }
+        body.modal-open { overflow: hidden; }
+        body.modal-open > *:not(.modal) { filter: blur(5px); }
+        header {
+            background-color: #ffffff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .main-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: #1c1e21;
+            margin: 0;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #login-btn { padding: 8px 16px; font-size: 16px; font-weight: bold; color: #ffffff; background-color: #1877f2; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+        #login-btn:hover { background-color: #166fe5; }
+        #item-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 40px 20px; }
+        .item-card { background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); width: 300px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+        .item-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .item-card img { width: 100%; height: 200px; object-fit: cover; }
+        .item-card .card-content { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .item-card h3 { margin: 0 0 10px 0; font-size: 20px; color: #1c1e21; }
+        .item-card p { margin: 0 0 15px 0; font-size: 14px; color: #606770; flex-grow: 1; }
+        .item-card .buy-btn { display: block; width: 100%; padding: 10px 0; text-align: center; background-color: #42b72a; color: white; text-decoration: none; font-weight: bold; border-radius: 6px; margin-top: auto; transition: background-color 0.2s; }
+        .item-card .buy-btn:hover { background-color: #36a420; }
+        .delete-btn { display: none; width: 100%; padding: 10px 0; text-align: center; background-color: #e74c3c; color: white; font-weight: bold; border-radius: 6px; border: none; margin-top: 10px; cursor: pointer; transition: background-color 0.2s; }
+        .delete-btn:hover { background-color: #c0392b; }
+        body.admin-view .delete-btn { display: block; }
+        .add-card { cursor: pointer; border: 2px dashed #a0a0a0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #606770; background-color: #f7f8fa; }
+        .add-card .plus-icon { font-size: 80px; font-weight: lighter; line-height: 1; }
+        .add-card h3 { color: #606770; }
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 500px; position: relative; }
+        /* Style dla przycisku backupu */
+        .admin-action-btn {
+            display: none; /* Domyślnie ukryty */
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background-color: #8e44ad; /* Fioletowy */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 15px; /* Odstęp od przycisku logowania */
+        }
+        .admin-action-btn:hover { background-color: #702f8a; }
+        body.admin-view .admin-action-btn { display: block; }
+    </style>
 </head>
 <body>
-  <h2>dodaj cos do repowej listy</h2>
-  <input id="input" placeholder="twoj wpis" />
-  <button onclick="dodaj()">dodaj</button>
+    <header>
+        <h1 class="main-title">FireReps Spreadsheet</h1>
+        <button id="generate-html-btn" class="admin-action-btn">Wygeneruj Backup HTML</button>
+        <button id="login-btn">Zaloguj</button>
+    </header>
 
-  <ul id="lista"></ul>
+    <main id="item-container"></main>
 
-  <!-- tu mozesz miec reszte twojego html -->
+    <div id="add-item-modal" class="modal">...</div>
+    <div id="delete-confirm-modal" class="modal">...</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+          authDomain: "spridszit-firerepy.firebaseapp.com",
+          databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "spridszit-firerepy",
+          storageBucket: "spridszit-firerepy.firebasestorage.app",
+          messagingSenderId: "963006920352",
+          appId: "1:963006920352:web:58538b879f004c02873bc5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const itemsRef = ref(db, 'items');
+
+        const loginBtn = document.getElementById('login-btn');
+        const itemContainer = document.getElementById('item-container');
+        const generateHtmlBtn = document.getElementById('generate-html-btn');
+        const body = document.body;
+
+        const ADMIN_LOGIN = 'ifirelovereps';
+        const ADMIN_PASS = 'fi123re987re098ps321';
+        let isAdmin = false;
+
+        // renderowanie elementow z firebase
+        function renderItems(data) {
+          itemContainer.innerHTML = '';
+          if (!data) return;
+
+          Object.entries(data).forEach(([key, item]) => {
+            const card = document.createElement('div');
+            card.className = 'item-card';
+
+            const img = document.createElement('img');
+            img.src = item.image;
+            img.alt = item.name;
+
+            const content = document.createElement('div');
+            content.className = 'card-content';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = item.name;
+
+            const p = document.createElement('p');
+            p.textContent = item.description;
+
+            const buyBtn = document.createElement('a');
+            buyBtn.className = 'buy-btn';
+            buyBtn.href = item.link;
+            buyBtn.target = '_blank';
+            buyBtn.textContent = 'Kup';
+
+            content.appendChild(h3);
+            content.appendChild(p);
+            content.appendChild(buyBtn);
+
+            // dodaj delete button tylko dla admina
+            if (isAdmin) {
+              const delBtn = document.createElement('button');
+              delBtn.className = 'delete-btn';
+              delBtn.textContent = 'Usuń';
+              delBtn.onclick = () => {
+                if (confirm(`Usunąć "${item.name}"?`)) {
+                  remove(ref(db, `items/${key}`));
+                }
+              };
+              content.appendChild(delBtn);
+            }
+
+            card.appendChild(img);
+            card.appendChild(content);
+            itemContainer.appendChild(card);
+          });
+        }
+
+        // pobierz dane i renderuj na starcie
+        onValue(itemsRef, (snapshot) => {
+          const data = snapshot.val();
+          renderItems(data);
+        });
+
+        // dodawanie itemu (dla uproszczenia na razie proste prompt)
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'a' && isAdmin) {
+            const name = prompt('Nazwa itemu');
+            if (!name) return alert('brak nazwy');
+            const desc = prompt('Opis itemu');
+            const image = prompt('URL obrazka');
+            const link = prompt('Link do sklepu');
+            if (!image || !link) return alert('brak obrazka lub linku');
+            push(itemsRef, { name, description: desc, image, link });
+          }
+        });
+
+        // logowanie admina
+        loginBtn.addEventListener('click', () => {
+          if (isAdmin) {
+            isAdmin = false;
+            body.classList.remove('admin-view');
+            loginBtn.textContent = 'Zaloguj';
+            alert('wylogowano ziomek');
+          } else {
+            const login = prompt('login');
+            const pass = prompt('haslo');
+            if (login === ADMIN_LOGIN && pass === ADMIN_PASS) {
+              isAdmin = true;
+              body.classList.add('admin-view');
+              loginBtn.textContent = 'Wyloguj';
+              alert('witaj adminie');
+            } else {
+              alert('zly login lub haslo');
+            }
+          }
+        });
+
+        // generowanie backupu html w admin view
+        generateHtmlBtn.addEventListener('click', () => {
+          if (!isAdmin) return alert('tylko dla admina ziomek');
+          let html = `<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<title>Backup FireReps</title>
+<style>
+  body { font-family: Arial,sans-serif; background:#f0f2f5; color:#1c1e21; }
+  .item { border:1px solid #ccc; margin:10px; padding:10px; background:#fff; max-width:400px;}
+  .item img { max-width:100%; }
+  .item h3 { margin:0 0 5px 0; }
+  .item p { margin:0 0 10px 0; }
+  .buy-btn { background:#42b72a; color:#fff; padding:8px 12px; text-decoration:none; border-radius:4px; font-weight:bold; }
+</style>
+</head>
+<body>
+<h1>Backup FireReps Spreadsheet</h1>
+<div>`;
+
+          // pobierz aktualne dane z firebase synchronicznie nie ma, wiec pominmy na rzecz tego co mamy w itemContainer
+          // zrobimy backup z obecnie wyświetlanych elementów
+          document.querySelectorAll('.item-card').forEach(card => {
+            const img = card.querySelector('img').src;
+            const name = card.querySelector('h3').textContent;
+            const desc = card.querySelector('p').textContent;
+            const link = card.querySelector('.buy-btn').href;
+            html += `<div class="item">
+              <img src="${img}" alt="${name}" />
+              <h3>${name}</h3>
+              <p>${desc}</p>
+              <a class="buy-btn" href="${link}" target="_blank">Kup</a>
+            </div>`;
+          });
+
+          html += '</div></body></html>';
+          const blob = new Blob([html], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+        });
+    </script>
 </body>
 </html>
