@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>FireReps - Zarządzanie przedmiotami</title>
+<title>FireReps z Firebase</title>
 <style>
+  /* takie same style jak poprzednio */
   body {
     font-family: Arial, sans-serif;
     margin: 0; background:#f5f5f5; color:#222;
@@ -58,7 +59,6 @@
   .btn-buy:hover {
     background: #388E3C;
   }
-  /* admin buttons */
   .btn-edit, .btn-delete {
     margin-top: 8px;
     padding: 10px 0;
@@ -83,7 +83,6 @@
   .btn-delete:hover {
     background: #9A2424;
   }
-  /* add btn */
   #add-btn-wrapper {
     width: 280px;
     margin: 20px auto;
@@ -107,7 +106,6 @@
     font-weight: 600;
     color: #1a73e8;
   }
-  /* add panel */
   #add-item-panel {
     max-width: 320px;
     background: white;
@@ -154,7 +152,6 @@
   #add-item-panel button:hover {
     background: #155ab6;
   }
-  /* edit mode style */
   .drag-handle {
     cursor: grab;
     padding: 8px;
@@ -163,7 +160,6 @@
     text-align: center;
     user-select:none;
   }
-  /* modal delete */
   #confirm-modal {
     display:none;
     position: fixed;
@@ -230,7 +226,7 @@
 
 <form id="add-item-panel" enctype="multipart/form-data">
   <label for="item-name">Nazwa przedmiotu</label>
-  <input type="text" id="item-name" placeholder="Wpisz nazwę przedmiotu" required />
+  <input type="text" id="item-name" placeholder="Wpisz nazwe przedmiotu" required />
 
   <label for="item-desc">Opis</label>
   <textarea id="item-desc" placeholder="Wpisz opis przedmiotu" rows="3"></textarea>
@@ -238,15 +234,15 @@
   <label for="item-link">Link do przedmiotu</label>
   <input type="url" id="item-link" placeholder="Wpisz link do zakupu" required />
 
-  <label for="item-image">Dodaj zdjęcie</label>
-  <input type="file" id="item-image" accept="image/*" required />
+  <label for="item-image">Dodaj zdjecie</label>
+  <input type="file" id="item-image" accept="image/*" />
 
   <button type="submit">Dodaj przedmiot</button>
 </form>
 
 <div id="confirm-modal">
   <div id="confirm-box">
-    <p>Czy na pewno chcesz usunąć ten przedmiot?</p>
+    <p>Czy na pewno chcesz usunac ten przedmiot?</p>
     <div id="confirm-buttons">
       <button id="confirm-yes">Tak</button>
       <button id="confirm-no">Nie</button>
@@ -254,288 +250,7 @@
   </div>
 </div>
 
-<script>
-  // dane przykładowe, można podmienić na firebase albo localStorage później
-  let items = [
-    {
-      id: '1',
-      name: 'Replika sneakersów',
-      description: 'Wysokiej jakości replika sneakersów z Kakobuya.',
-      link: 'https://kakobuya.com/sneakers',
-      image: 'https://via.placeholder.com/280x180?text=Replika+Sneakers',
-    },
-    {
-      id: '2',
-      name: 'Torba na ramię',
-      description: 'Stylowa torba na ramię idealna na co dzień.',
-      link: 'https://kakobuya.com/torba',
-      image: 'https://via.placeholder.com/280x180?text=Torba+na+r%C4%85mi%C4%99',
-    },
-  ];
-
-  let isAdmin = false;
-  let editingItemId = null;
-  let dragSrcEl = null;
-  const adminLogin = 'admin';
-  const adminPass = 'sigma123';
-
-  const loginBtn = document.getElementById('login-btn');
-  const itemContainer = document.getElementById('item-container');
-  const addBtnWrapper = document.getElementById('add-btn-wrapper');
-  const addBtn = document.getElementById('add-btn');
-  const addItemPanel = document.getElementById('add-item-panel');
-  const confirmModal = document.getElementById('confirm-modal');
-  const confirmYes = document.getElementById('confirm-yes');
-  const confirmNo = document.getElementById('confirm-no');
-
-  function renderItems() {
-    itemContainer.innerHTML = '';
-    // admin widzi wszystkie itemy + dodaj kafelek
-    // zwykly user widzi tylko itemy z przyciskiem kup
-    items.forEach((item, idx) => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
-      card.draggable = isAdmin;
-      card.dataset.id = item.id;
-
-      if (isAdmin) {
-        const dragHandle = document.createElement('div');
-        dragHandle.className = 'drag-handle';
-        dragHandle.textContent = 'Przeciągnij';
-        card.appendChild(dragHandle);
-
-        dragHandle.addEventListener('dragstart', dragStart);
-        dragHandle.addEventListener('dragover', dragOver);
-        dragHandle.addEventListener('dragenter', dragEnter);
-        dragHandle.addEventListener('dragleave', dragLeave);
-        dragHandle.addEventListener('dragend', dragEnd);
-        dragHandle.addEventListener('drop', drop);
-      }
-
-      const img = document.createElement('img');
-      img.src = item.image;
-      img.alt = item.name;
-      card.appendChild(img);
-
-      const content = document.createElement('div');
-      content.className = 'card-content';
-
-      const h3 = document.createElement('h3');
-      h3.textContent = item.name;
-      content.appendChild(h3);
-
-      const p = document.createElement('p');
-      p.textContent = item.description;
-      content.appendChild(p);
-
-      if (isAdmin) {
-        // edycja i usuwanie
-        const btnEdit = document.createElement('button');
-        btnEdit.className = 'btn-edit';
-        btnEdit.textContent = 'Edytuj';
-        btnEdit.onclick = () => openEditPanel(item.id);
-        content.appendChild(btnEdit);
-
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'Usuń';
-        btnDelete.onclick = () => confirmDelete(item.id);
-        content.appendChild(btnDelete);
-      } else {
-        // zwykly user przycisk kup
-        const btnBuy = document.createElement('a');
-        btnBuy.className = 'btn-buy';
-        btnBuy.textContent = 'Kup';
-        btnBuy.href = item.link;
-        btnBuy.target = '_blank';
-        btnBuy.rel = 'noopener noreferrer';
-        content.appendChild(btnBuy);
-      }
-
-      card.appendChild(content);
-      itemContainer.appendChild(card);
-    });
-
-    if (isAdmin) {
-      addBtnWrapper.style.display = 'block';
-    } else {
-      addBtnWrapper.style.display = 'none';
-    }
-  }
-
-  function openEditPanel(id) {
-    editingItemId = id;
-    addItemPanel.style.display = 'flex';
-
-    const item = items.find(i => i.id === id);
-    if (!item) return;
-
-    document.getElementById('item-name').value = item.name;
-    document.getElementById('item-desc').value = item.description;
-    document.getElementById('item-link').value = item.link;
-    // nie ustawiam pliku, bo nie da sie programowo
-
-    addItemPanel.querySelector('button').textContent = 'Zapisz zmiany';
-  }
-
-  function openAddPanel() {
-    editingItemId = null;
-    addItemPanel.style.display = 'flex';
-    addItemPanel.reset?.();
-    document.getElementById('item-name').value = '';
-    document.getElementById('item-desc').value = '';
-    document.getElementById('item-link').value = '';
-    document.getElementById('item-image').value = '';
-    addItemPanel.querySelector('button').textContent = 'Dodaj przedmiot';
-  }
-
-  function closeAddPanel() {
-    addItemPanel.style.display = 'none';
-  }
-
-  addBtnWrapper.addEventListener('click', openAddPanel);
-
-  loginBtn.addEventListener('click', () => {
-    if (!isAdmin) {
-      const login = prompt('Podaj nazwę użytkownika:');
-      const pass = prompt('Podaj hasło:');
-      if (login === adminLogin && pass === adminPass) {
-        isAdmin = true;
-        loginBtn.textContent = 'Wyloguj się';
-        renderItems();
-        alert('Zalogowano jako administrator');
-      } else {
-        alert('Niepoprawne dane logowania');
-      }
-    } else {
-      isAdmin = false;
-      loginBtn.textContent = 'Zaloguj się';
-      closeAddPanel();
-      renderItems();
-    }
-  });
-
-  addItemPanel.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const name = document.getElementById('item-name').value.trim();
-    const desc = document.getElementById('item-desc').value.trim();
-    const link = document.getElementById('item-link').value.trim();
-    const imageInput = document.getElementById('item-image');
-
-    if (!name || !link) {
-      alert('Nazwa i link są wymagane');
-      return;
-    }
-
-    if (!editingItemId && imageInput.files.length === 0) {
-      alert('Wybierz zdjęcie przedmiotu');
-      return;
-    }
-
-    if (editingItemId) {
-      // edycja
-      const idx = items.findIndex(i => i.id === editingItemId);
-      if (idx === -1) return alert('Nie znaleziono przedmiotu do edycji');
-
-      items[idx].name = name;
-      items[idx].description = desc;
-      items[idx].link = link;
-
-      if (imageInput.files.length > 0) {
-        // czytamy obrazek jako base64
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-          items[idx].image = ev.target.result;
-          closeAddPanel();
-          renderItems();
-        }
-        reader.readAsDataURL(imageInput.files[0]);
-      } else {
-        closeAddPanel();
-        renderItems();
-      }
-    } else {
-      // dodawanie nowego
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        items.push({
-          id: Date.now().toString(),
-          name,
-          description: desc,
-          link,
-          image: ev.target.result,
-        });
-        closeAddPanel();
-        renderItems();
-      }
-      reader.readAsDataURL(imageInput.files[0]);
-    }
-  });
-
-  // drag & drop
-
-  function dragStart(e) {
-    dragSrcEl = e.currentTarget.parentElement; // karta
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
-    dragSrcEl.classList.add('dragging');
-  }
-  function dragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
-  function dragEnter(e) {
-    e.preventDefault();
-    const card = e.currentTarget.parentElement;
-    if (card !== dragSrcEl) card.classList.add('drag-over');
-  }
-  function dragLeave(e) {
-    const card = e.currentTarget.parentElement;
-    card.classList.remove('drag-over');
-  }
-  function dragEnd(e) {
-    dragSrcEl.classList.remove('dragging');
-    document.querySelectorAll('.item-card').forEach(card => card.classList.remove('drag-over'));
-  }
-  function drop(e) {
-    e.stopPropagation();
-    const card = e.currentTarget.parentElement;
-    if (dragSrcEl !== card) {
-      const srcId = dragSrcEl.dataset.id;
-      const tgtId = card.dataset.id;
-      const srcIdx = items.findIndex(i => i.id === srcId);
-      const tgtIdx = items.findIndex(i => i.id === tgtId);
-      // zamiana pozycji
-      const [moved] = items.splice(srcIdx, 1);
-      items.splice(tgtIdx, 0, moved);
-      renderItems();
-    }
-    return false;
-  }
-
-  // usuwanie z potwierdzeniem
-
-  let deleteId = null;
-  function confirmDelete(id) {
-    deleteId = id;
-    confirmModal.style.display = 'flex';
-  }
-  confirmYes.addEventListener('click', () => {
-    if (deleteId) {
-      items = items.filter(i => i.id !== deleteId);
-      deleteId = null;
-      confirmModal.style.display = 'none';
-      renderItems();
-    }
-  });
-  confirmNo.addEventListener('click', () => {
-    deleteId = null;
-    confirmModal.style.display = 'none';
-  });
-
-  renderItems();
-
-</script>
-</body>
-</html>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getDatabase, ref, onValue, push, update, remove, set } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www
