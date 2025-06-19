@@ -1,453 +1,53 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FireReps Spreadsheet</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>spreadsheet repy</title>
+  <script type="module">
+    // firebase 9+ modular imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-    <style>
-        /* --- GŁÓWNE STYLE STRONY --- */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            transition: filter 0.3s ease-in-out;
-        }
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+      authDomain: "spridszit-firerepy.firebaseapp.com",
+      databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "spridszit-firidepy",
+      storageBucket: "spridszit-firerepy.firebasestorage.app",
+      messagingSenderId: "963006920352",
+      appId: "1:963006920352:web:58538b879f004c02873bc5"
+    };
 
-        body.modal-open {
-            overflow: hidden;
-        }
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const listaRef = ref(db, 'lista');
 
-        /* Blurujemy wszystko co nie jest modalem */
-        body.modal-open > *:not(.modal) {
-             filter: blur(5px);
-        }
+    window.dodaj = function() {
+      const input = document.getElementById('input');
+      const val = input.value.trim();
+      if (val) {
+        push(listaRef, val);
+        input.value = '';
+      }
+    };
 
-        header {
-            background-color: #ffffff;
-            padding: 10px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between; /* Zmienione na space-between */
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        /* Styl dla nowego tytułu */
-        .main-title {
-            font-family: 'Poppins', sans-serif;
-            font-size: 24px;
-            font-weight: 500;
-            color: #1c1e21;
-            margin: 0;
-        }
-
-        #login-btn {
-            padding: 8px 16px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffffff;
-            background-color: #1877f2;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        #login-btn:hover {
-            background-color: #166fe5;
-        }
-
-        #item-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            padding: 40px 20px;
-        }
-
-        /* --- STYLE PANELI (KAFLI) --- */
-        .item-card {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            width: 300px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .item-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .item-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .item-card .card-content {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .item-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 20px;
-            color: #1c1e21;
-        }
-
-        .item-card p {
-            margin: 0 0 15px 0;
-            font-size: 14px;
-            color: #606770;
-            flex-grow: 1;
-        }
-
-        .item-card .buy-btn {
-            display: block;
-            width: 100%;
-            padding: 10px 0;
-            text-align: center;
-            background-color: #42b72a;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 6px;
-            margin-top: auto;
-            transition: background-color 0.2s;
-        }
-
-        .item-card .buy-btn:hover {
-            background-color: #36a420;
-        }
-        
-        /* --- NOWY PRZYCISK USUWANIA --- */
-        .delete-btn {
-            display: none; /* Domyślnie ukryty */
-            width: 100%;
-            padding: 10px 0;
-            text-align: center;
-            background-color: #e74c3c; /* Czerwony kolor */
-            color: white;
-            font-weight: bold;
-            border-radius: 6px;
-            border: none;
-            margin-top: 10px; /* Odstęp od przycisku "Kup" */
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .delete-btn:hover {
-            background-color: #c0392b;
-        }
-
-        /* Pokaż przycisk Usuń, gdy admin jest zalogowany */
-        body.admin-view .delete-btn {
-            display: block;
-        }
-
-        .add-card {
-            cursor: pointer;
-            border: 2px dashed #a0a0a0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #606770;
-            background-color: #f7f8fa;
-        }
-        .add-card .plus-icon { font-size: 80px; font-weight: lighter; line-height: 1; }
-        .add-card h3 { color: #606770; }
-
-        /* --- STYLE MODALI --- */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 200;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-        }
-        
-        #add-item-form h2 { margin-top: 0; text-align: center; margin-bottom: 25px; }
-        #add-item-form label { display: block; font-weight: bold; margin-bottom: 5px; color: #606770; }
-        #add-item-form input[type="text"], #add-item-form textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #dddfe2; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        #add-item-form input[type="file"] { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #dddfe2; border-radius: 6px; }
-        #add-item-form textarea { resize: vertical; min-height: 80px; }
-        #form-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
-        #create-item-btn { padding: 12px 24px; font-size: 16px; font-weight: bold; color: #ffffff; background-color: #1877f2; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
-        #create-item-btn:hover { background-color: #166fe5; }
-
-        /* --- NOWE STYLE DLA MODALA POTWIERDZAJĄCEGO USUNIĘCIE --- */
-        #delete-confirm-text {
-            font-size: 18px;
-            text-align: center;
-            margin: 0 0 25px 0;
-        }
-        .confirm-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        .confirm-actions button {
-            padding: 10px 30px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .confirm-actions button:hover {
-            opacity: 0.85;
-        }
-        #confirm-delete-btn {
-            background-color: #e74c3c;
-            color: white;
-        }
-        #cancel-delete-btn {
-            background-color: #bdc3c7;
-            color: #2c3e50;
-        }
-    </style>
+    window.onload = () => {
+      const ul = document.getElementById('lista');
+      onChildAdded(listaRef, (data) => {
+        const li = document.createElement('li');
+        li.textContent = data.val();
+        ul.appendChild(li);
+      });
+    };
+  </script>
 </head>
 <body>
+  <h2>dodaj cos do repowej listy</h2>
+  <input id="input" placeholder="twoj wpis" />
+  <button onclick="dodaj()">dodaj</button>
 
-    <header>
-        <h1 class="main-title">FireReps Spreadsheet</h1>
-        <button id="login-btn">Zaloguj</button>
-    </header>
+  <ul id="lista"></ul>
 
-    <main id="item-container">
-        </main>
-
-    <div id="add-item-modal" class="modal">
-        <div class="modal-content">
-            <form id="add-item-form">
-                <h2>Dodaj nowy przedmiot</h2>
-                <label for="item-image-input">Dodaj zdjęcie</label>
-                <input type="file" id="item-image-input" accept="image/*" required>
-                <label for="item-name-input">Nazwa przedmiotu</label>
-                <input type="text" id="item-name-input" placeholder="np. Unikalna Edycja Limitowana" required>
-                <label for="item-desc-input">Opis</label>
-                <textarea id="item-desc-input" placeholder="Krótki, zachęcający opis produktu..." required></textarea>
-                <label for="item-link-input">Link</label>
-                <input type="text" id="item-link-input" placeholder="https://sklep.pl/produkt/..." required>
-                <div id="form-actions">
-                    <button type="submit" id="create-item-btn">Utwórz</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div id="delete-confirm-modal" class="modal">
-        <div class="modal-content">
-            <p id="delete-confirm-text">Czy na pewno chcesz usunąć ten przedmiot?</p>
-            <div class="confirm-actions">
-                <button id="confirm-delete-btn">Tak</button>
-                <button id="cancel-delete-btn">Nie</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- LOGIKA STRONY (JAVASCRIPT) ---
-
-        const loginBtn = document.getElementById('login-btn');
-        const itemContainer = document.getElementById('item-container');
-        const addItemModal = document.getElementById('add-item-modal');
-        const addItemForm = document.getElementById('add-item-form');
-        const body = document.body;
-
-        // NOWE ELEMENTY: Modal potwierdzający usunięcie
-        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-
-        const ADMIN_LOGIN = 'ifirelovereps';
-        const ADMIN_PASS = 'fi123re987re098ps321';
-        let isAdmin = false;
-        let itemIndexToDelete = null; // Zmienna przechowująca index przedmiotu do usunięcia
-
-        let items = [
-        ];
-
-        // --- FUNKCJE ---
-
-        function renderItems() {
-            itemContainer.innerHTML = '';
-            // Przechodzimy po tablicy `items` używając też `index`, który będzie nam potrzebny do usuwania
-            items.forEach((item, index) => {
-                const itemCardHTML = `
-                    <div class="item-card">
-                        <img src="${item.image}" alt="${item.name}">
-                        <div class="card-content">
-                            <h3>${item.name}</h3>
-                            <p>${item.description}</p>
-                            <a href="${item.link}" target="_blank" class="buy-btn">Kup</a>
-                            <button class="delete-btn" data-index="${index}">Usuń</button>
-                        </div>
-                    </div>
-                `;
-                itemContainer.innerHTML += itemCardHTML;
-            });
-
-            if (isAdmin) {
-                const addCardHTML = `
-                    <div class="item-card add-card" id="add-card-btn">
-                        <div class="plus-icon">+</div>
-                        <h3>Dodaj</h3>
-                    </div>
-                `;
-                itemContainer.innerHTML += addCardHTML;
-                document.getElementById('add-card-btn').addEventListener('click', openAddModal);
-            }
-        }
-
-        function openAddModal() {
-            addItemModal.style.display = 'flex';
-            body.classList.add('modal-open');
-        }
-
-        function closeAddModal() {
-            addItemModal.style.display = 'none';
-            body.classList.remove('modal-open');
-            addItemForm.reset();
-        }
-
-        // NOWE FUNKCJE: do obsługi modala usuwania
-        function openDeleteModal(index) {
-            itemIndexToDelete = index;
-            deleteConfirmModal.style.display = 'flex';
-            body.classList.add('modal-open');
-        }
-
-        function closeDeleteModal() {
-            itemIndexToDelete = null;
-            deleteConfirmModal.style.display = 'none';
-            body.classList.remove('modal-open');
-        }
-
-        function handleLogin() {
-            if (isAdmin) return; // Jeśli już zalogowany, nic nie rób
-            const login = prompt('Podaj login:');
-            if (login === null) return;
-            const password = prompt('Podaj hasło:');
-            if (password === null) return;
-
-            if (login === ADMIN_LOGIN && password === ADMIN_PASS) {
-                alert('Zalogowano pomyślnie!');
-                isAdmin = true;
-                body.classList.add('admin-view'); // Dodaj klasę do body, by pokazać przyciski usuwania
-                loginBtn.textContent = 'Wyloguj';
-                renderItems();
-            } else {
-                alert('Błędny login lub hasło.');
-            }
-        }
-
-        // Dodana funkcja wylogowywania dla przejrzystości
-        function handleLogout() {
-            isAdmin = false;
-            body.classList.remove('admin-view');
-            loginBtn.textContent = 'Zaloguj';
-            alert('Wylogowano.');
-            renderItems();
-        }
-
-        function handleAddItem(event) {
-            event.preventDefault();
-            const name = document.getElementById('item-name-input').value;
-            const description = document.getElementById('item-desc-input').value;
-            const link = document.getElementById('item-link-input').value;
-            const imageFile = document.getElementById('item-image-input').files[0];
-
-            if (imageFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const newItem = {
-                        name: name,
-                        description: description,
-                        image: e.target.result,
-                        link: link
-                    };
-                    items.unshift(newItem);
-                    renderItems();
-                    closeAddModal();
-                };
-                reader.readAsDataURL(imageFile);
-            }
-        }
-
-        // NOWA FUNKCJA: Potwierdzenie usunięcia
-        function confirmDeletion() {
-            if (itemIndexToDelete !== null) {
-                items.splice(itemIndexToDelete, 1); // Usuń element z tablicy `items`
-                renderItems(); // Przerenderuj widok
-                closeDeleteModal(); // Zamknij modal
-            }
-        }
-
-        // --- NASŁUCHIWANIE NA ZDARZENIA ---
-
-        loginBtn.addEventListener('click', () => {
-            if (isAdmin) {
-                handleLogout();
-            } else {
-                handleLogin();
-            }
-        });
-
-        addItemForm.addEventListener('submit', handleAddItem);
-        addItemModal.addEventListener('click', function(event) {
-            if (event.target === addItemModal) closeAddModal();
-        });
-
-        // Nasłuchiwanie na kliknięcia w głównym kontenerze (delegacja zdarzeń)
-        itemContainer.addEventListener('click', function(event) {
-            // Sprawdź, czy kliknięty element to przycisk "Usuń"
-            if (event.target.classList.contains('delete-btn')) {
-                const index = parseInt(event.target.dataset.index, 10);
-                openDeleteModal(index);
-            }
-        });
-
-        // NOWE NASŁUCHIWANIA: Przyciski w modalu potwierdzenia
-        confirmDeleteBtn.addEventListener('click', confirmDeletion);
-        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-        deleteConfirmModal.addEventListener('click', function(event) {
-            if (event.target === deleteConfirmModal) closeDeleteModal();
-        });
-
-        // --- PIERWSZE URUCHOMIENIE ---
-        renderItems();
-
-    </script>
+  <!-- tu mozesz miec reszte twojego html -->
 </body>
 </html>
