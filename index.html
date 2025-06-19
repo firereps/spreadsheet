@@ -1,139 +1,173 @@
 <!DOCTYPE html>
-<html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FireReps Spreadsheet</title><style>
-body{font-family:sans-serif;margin:0;background:#f0f2f5;color:#111}
-header{display:flex;justify-content:flex-end;align-items:center;padding:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-#login-form, #logout-btn{margin-left:10px}
-#item-container{display:flex;flex-wrap:wrap;gap:20px;padding:20px}
-.item-card{width:300px;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.2);position:relative;overflow:hidden}
-.item-card img{width:100%;height:200px;object-fit:cover}
-.card-content{padding:10px;display:flex;flex-direction:column}
-.card-content h3{margin:0 0 5px}
-.card-content p{flex:1;color:#555}
-.buy-btn{display:block;padding:8px;text-align:center;background:#28a745;color:#fff;border-radius:4px;text-decoration:none;margin-top:5px}
-.delete-btn{position:absolute;bottom:55px;left:5%;width:90%;padding:10px;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;display:none}
-.add-card{width:300px;height:200px;border:2px dashed #888;border-radius:6px;display:none;flex-direction:column;align-items:center;justify-content:center;color:#888;cursor:pointer;margin:20px auto}
-.add-card.show{display:flex}
-.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center}
-.modal.show{display:flex}
-.modal-content{background:#fff;padding:20px;border-radius:6px;width:90%;max-width:400px}
-.modal-content input, .modal-content textarea{width:100%;padding:8px;margin-bottom:10px;border:1px solid #ccc;border-radius:4px}
-.modal-buttons{text-align:right}
-.modal-buttons button{margin-left:5px;padding:8px 12px;border:none;border-radius:4px;cursor:pointer}
-.btn-cancel{background:#6c757d;color:#fff}
-.btn-add{background:#007bff;color:#fff}
-.btn-delete-confirm{background:#dc3545;color:#fff}
-.error-msg{color:#dc3545;margin-bottom:10px;display:none}
-</style></head><body>
-<header>
-  <form id="login-form">
-    <input type="text" id="login" placeholder="login"><input type="password" id="password" placeholder="haslo"><button type="submit">zaloguj</button></form>
-  <button id="logout-btn">wyloguj</button>
-</header>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FireReps Spreadsheet - Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+  <style id="page-styles">
+    /* twoje style... */
+    body { /* … */ }
+    header { /* … */ }
+    .main-title { /* … */ }
+    #login-btn { /* … */ }
+    #item-container { /* … */ }
+    .item-card { /* … */ }
+    .item-card img { /* … */ }
+    .card-content { /* … */ }
+    .buy-btn { /* … */ }
+    .delete-btn { /* … */ }
+    body.admin-view .delete-btn { display: block; }
+    .add-card { /* … */ }
+    .modal { /* … */ }
+    .modal-content { /* … */ }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="main-title">FireReps Spreadsheet</h1>
+    <button id="login-btn">Zaloguj</button>
+  </header>
 
-<main id="item-container"></main>
+  <main id="item-container"></main>
 
-<div class="add-card" id="add-card"><div style="font-size:48px">+</div><div>dodaj produkt</div></div>
+  <div class="add-card" id="add-card" style="display:none;cursor:pointer;margin:20px">
+    <div style="font-size:48px">+</div>
+    <div>dodaj produkt</div>
+  </div>
 
-<div id="add-modal" class="modal"><div class="modal-content">
-  <div class="error-msg" id="add-error"></div>
-  <input type="text" id="item-name" placeholder="nazwa"><textarea id="item-desc" placeholder="opis"></textarea><input type="text" id="item-link" placeholder="link (opcjonalnie)"><input type="text" id="item-image-url" placeholder="url do zdjecia"><div class="modal-buttons"><button class="btn-cancel" id="cancel-add">anuluj</button><button class="btn-add" id="confirm-add">dodaj</button></div>
-</div></div>
+  <!-- modal dodawania -->
+  <div id="add-modal" class="modal">
+    <div class="modal-content">
+      <h2>Dodaj nowy produkt</h2>
+      <input type="text" id="item-name" placeholder="nazwa" />
+      <textarea id="item-desc" placeholder="opis"></textarea>
+      <input type="text" id="item-link" placeholder="link (opcjonalnie)" />
+      <input type="text" id="item-image-url" placeholder="url do zdjecia" />
+      <div style="text-align:right">
+        <button id="cancel-add" class="btn-cancel">anuluj</button>
+        <button id="confirm-add" class="btn-add">dodaj</button>
+      </div>
+    </div>
+  </div>
 
-<div id="delete-modal" class="modal"><div class="modal-content">
-  <p>czy na pewno chcesz usunac?</p><div class="modal-buttons"><button class="btn-cancel" id="cancel-delete">nie</button><button class="btn-delete-confirm" id="confirm-delete">tak</button></div>
-</div></div>
+  <!-- modal potwierdzenia -->
+  <div id="delete-modal" class="modal">
+    <div class="modal-content">
+      <p>Czy na pewno chcesz usunąć ten produkt?</p>
+      <div style="text-align:right">
+        <button id="cancel-delete" class="btn-cancel">nie</button>
+        <button id="confirm-delete" class="btn-delete-confirm">tak</button>
+      </div>
+    </div>
+  </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script><script>
-const firebaseConfig = {apiKey:"...",authDomain:"...",databaseURL:"https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",projectId:"spridszit-firerepy",storageBucket:"spridszit-firerepy.appspot.com",messagingSenderId:"963006920352",appId:"1:963006920352:web:58538b879f004c02873bc5"};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const refItems = db.ref('items');
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+  <script>
+    // tu podstaw swoje dane z Firebase:
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+      authDomain: "spridszit-firerepy.firebaseapp.com",
+      databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "spridszit-firerepy",
+      storageBucket: "spridszit-firerepy.appspot.com",
+      messagingSenderId: "963006920352",
+      appId: "1:963006920352:web:58538b879f004c02873bc5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const itemsRef = db.ref('items');
 
-let deleteKey=null, isAdmin=false;
+    const loginBtn = document.getElementById('login-btn'),
+          addCard = document.getElementById('add-card'),
+          addModal = document.getElementById('add-modal'),
+          deleteModal = document.getElementById('delete-modal'),
+          cancelAdd = document.getElementById('cancel-add'),
+          confirmAdd = document.getElementById('confirm-add'),
+          cancelDelete = document.getElementById('cancel-delete'),
+          confirmDelete = document.getElementById('confirm-delete'),
+          container = document.getElementById('item-container');
 
-const loginForm = document.getElementById('login-form');
-const logoutBtn = document.getElementById('logout-btn');
-const addCard = document.getElementById('add-card');
-const addModal = document.getElementById('add-modal');
-const deleteModal = document.getElementById('delete-modal');
-const cancelAdd = document.getElementById('cancel-add');
-const confirmAdd = document.getElementById('confirm-add');
-const cancelDelete = document.getElementById('cancel-delete');
-const confirmDelete = document.getElementById('confirm-delete');
-const addError = document.getElementById('add-error');
-const container = document.getElementById('item-container');
+    let isAdmin = false, deleteKey = null;
 
-function showModal(m){m.classList.add('show')}
-function hideModal(m){m.classList.remove('show')}
-function clearItems(){container.innerHTML=''}
-function loadItems(){
-  clearItems();
-  refItems.once('value',snap=>{
-    snap.forEach(s=>{
-      const key=s.key, it=s.val();
-      const card=document.createElement('div');card.className='item-card';
-      card.innerHTML=`<img src="${it.image}" alt=""><div class="card-content"><h3>${it.name}</h3><p>${it.description||''}</p>${it.link?`<a class="buy-btn" href="${it.link}" target="_blank">kup</a>`:''}</div>`;
-      if(isAdmin){
-        const btn=document.createElement('button');btn.textContent='usun';btn.className='delete-btn show';
-        btn.onclick=()=>{ deleteKey=key; showModal(deleteModal); };
-        card.appendChild(btn);
-      }
-      container.appendChild(card);
-    });
-    if(isAdmin) container.appendChild(addCard);
-    else addCard.remove();
-  });
-}
-
-loginForm.onsubmit = e=>{
-  e.preventDefault();
-  if(document.getElementById('login').value==='ifirelovereps' && document.getElementById('password').value==='fi123re987re098ps321'){
-    isAdmin=true;
-    loginForm.style.display='none';
-    logoutBtn.style.display='inline';
-    loadItems();
-  } else alert('zly login lub haslo');
-};
-
-logoutBtn.onclick=()=>{
-  isAdmin=false;
-  loginForm.style.display='';
-  logoutBtn.style.display='none';
-  deleteKey=null;
-  loadItems();
-};
-
-addCard.onclick=()=>showModal(addModal);
-cancelAdd.onclick=()=>{
-  addError.style.display='none';
-  hideModal(addModal);
-};
-confirmAdd.onclick=()=>{
-  const name=document.getElementById('item-name').value.trim();
-  const desc=document.getElementById('item-desc').value.trim();
-  const link=document.getElementById('item-link').value.trim();
-  const img=document.getElementById('item-image-url').value.trim();
-  if(!name){addError.textContent='wpisz nazwe';addError.style.display='block';return;}
-  if(!img){addError.textContent='wpisz url zdjecia';addError.style.display='block';return;}
-  refItems.push({name,description:desc,link,image:img},err=>{
-    if(err)alert('blad zapisu'); else{
-      document.getElementById('item-name').value='';
-      document.getElementById('item-desc').value='';
-      document.getElementById('item-link').value='';
-      document.getElementById('item-image-url').value='';
-      hideModal(addModal);
-      loadItems();
+    function showModal(m){ m.style.display='flex'; document.body.style.filter='blur(3px)'; }
+    function hideModal(m){ m.style.display='none'; document.body.style.filter='none'; }
+    function renderItems(){
+      container.innerHTML = '';
+      itemsRef.once('value', snap => {
+        snap.forEach(ch => {
+          const it = ch.val(), key = ch.key;
+          const card = document.createElement('div');
+          card.className = 'item-card';
+          card.innerHTML = `
+            <img src="${it.image}" alt="${it.name}">
+            <div class="card-content">
+              <h3>${it.name}</h3>
+              <p>${it.description||''}</p>
+              ${it.link?`<a class="buy-btn" href="${it.link}" target="_blank">kup</a>`:''}
+            </div>`;
+          if(isAdmin){
+            const btn = document.createElement('button');
+            btn.className = 'delete-btn';
+            btn.textContent = 'usuń';
+            btn.onclick = () => { deleteKey = key; showModal(deleteModal); };
+            card.appendChild(btn);
+          }
+          container.appendChild(card);
+        });
+        if(isAdmin) addCard.style.display = 'block'; else addCard.style.display = 'none';
+      });
     }
-  });
-};
 
-cancelDelete.onclick=()=>{ deleteKey=null; hideModal(deleteModal); };
-confirmDelete.onclick=()=>{
-  if(deleteKey){ refItems.child(deleteKey).remove(err=>{
-    if(err)alert('blad'); else{deleteKey=null;hideModal(deleteModal);loadItems();}
-  });}
-};
+    loginBtn.onclick = () => {
+      if(!isAdmin){
+        const l = prompt('login'), p = prompt('haslo');
+        if(l==='ifirelovereps' && p==='fi123re987re098ps321'){
+          isAdmin = true;
+          loginBtn.textContent = 'wyloguj';
+        } else {
+          alert('bledne dane');
+          return;
+        }
+      } else {
+        isAdmin = false;
+        loginBtn.textContent = 'zaloguj';
+      }
+      renderItems();
+    };
 
-logoutBtn.style.display='none';
-loadItems();
-</script></body></html>
+    addCard.onclick = () => { showModal(addModal); };
+
+    cancelAdd.onclick = () => { hideModal(addModal); };
+    confirmAdd.onclick = () => {
+      const n = document.getElementById('item-name').value.trim(),
+            d = document.getElementById('item-desc').value.trim(),
+            l = document.getElementById('item-link').value.trim(),
+            u = document.getElementById('item-image-url').value.trim();
+      if(!n || !u){ alert('wypelnij nazwe i url'); return; }
+      itemsRef.push({ name: n, description: d, link: l, image: u }, err => {
+        if(err) alert('blad zapisu');
+        else {
+          hideModal(addModal);
+          renderItems();
+        }
+      });
+    };
+
+    cancelDelete.onclick = () => { deleteKey = null; hideModal(deleteModal); };
+    confirmDelete.onclick = () => {
+      if(deleteKey){
+        itemsRef.child(deleteKey).remove(err => {
+          if(err) alert('blad usuniecia');
+          else { deleteKey = null; hideModal(deleteModal); renderItems(); }
+        });
+      }
+    };
+
+    renderItems();
+  </script>
+</body>
+</html>
