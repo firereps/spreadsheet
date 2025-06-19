@@ -122,9 +122,9 @@
         border-radius: 6px;
         cursor: pointer;
         transition: background-color 0.2s;
+        display: none;
     }
-    .delete-btn:hover { background-color: #c0392b; }
-    body.admin-view .delete-btn { display: block; }
+    .delete-btn.show { display: block; }
     .add-card {
         cursor: pointer;
         border: 2px dashed #a0a0a0;
@@ -138,6 +138,10 @@
         height: 300px;
         border-radius: 8px;
         transition: background-color 0.2s, border-color 0.2s;
+        display: none;
+    }
+    .add-card.show {
+        display: flex;
     }
     .add-card:hover {
         background-color: #e0e2e5;
@@ -246,7 +250,7 @@
 
 <header>
     <h1 class="main-title">FireReps Spreadsheet</h1>
-    <button id="login-btn">Zaloguj się</button>
+    <button id="login-btn">Zaloguj się jako admin</button>
 </header>
 
 <main id="item-container">
@@ -328,12 +332,7 @@ const cancelDeleteBtn = document.getElementById('cancel-delete');
 const confirmDeleteBtn = document.getElementById('confirm-delete');
 
 let deleteKey = null;
-let isAdmin = false; // zrobisz to po swojemu, tu zakladam admina
-
-// symulacja zalogowania admina
-loginBtn.textContent = "Wyloguj się";
-isAdmin = true;
-document.body.classList.add('admin-view');
+let isAdmin = false; // start jako zwykly user
 
 function openModal(modal) {
     modal.classList.add('show');
@@ -383,7 +382,7 @@ function createItemCard(key, item) {
     if(isAdmin){
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Usuń produkt';
-        deleteBtn.classList.add('delete-btn');
+        deleteBtn.classList.add('delete-btn', 'show');
         deleteBtn.addEventListener('click', () => {
             deleteKey = key;
             openModal(deleteConfirmModal);
@@ -406,6 +405,22 @@ function refreshItems() {
         });
     });
 }
+
+// przycisk zaloguj/wyloguj admina
+loginBtn.addEventListener('click', () => {
+    if(!isAdmin) {
+        isAdmin = true;
+        loginBtn.textContent = "Wyloguj się z admina";
+        addCard.classList.add('show');
+    } else {
+        isAdmin = false;
+        loginBtn.textContent = "Zaloguj się jako admin";
+        addCard.classList.remove('show');
+        closeModal(addItemModal);
+        closeModal(deleteConfirmModal);
+    }
+    refreshItems();
+});
 
 // otwieranie modal dodawania
 addCard.addEventListener('click', () => {
