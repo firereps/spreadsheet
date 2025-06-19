@@ -3,164 +3,427 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Panel dodawania przedmiotów</title>
+<title>Panel przedmiotów z Firebase</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding: 20px;
+    background: #f4f4f4;
+    margin: 0; padding: 0;
   }
-  h1 {
-    margin-bottom: 20px;
+  header {
+    background: #222;
+    color: #fff;
+    padding: 15px;
+    text-align: center;
   }
-  form {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 400px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  }
-  form input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  form button {
-    background-color: #0a74da;
-    color: white;
-    font-size: 16px;
-    padding: 10px;
+  #login-button {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #007bff;
     border: none;
+    color: white;
+    padding: 8px 14px;
     border-radius: 4px;
     cursor: pointer;
+    font-weight: bold;
+    z-index: 1000;
   }
-  form button:hover {
-    background-color: #095bb5;
+  #logout-button {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #dc3545;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 1000;
+    display: none;
+  }
+  #add-item-button {
+    background: #28a745;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 15px auto;
+    display: block;
+    width: 150px;
+  }
+  #login-modal, #item-modal {
+    display: none;
+    position: fixed;
+    z-index: 1100;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
+  #login-modal.active, #item-modal.active {
+    display: flex;
+  }
+  .modal-content {
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 8px;
+    width: 320px;
+    box-shadow: 0 0 10px #0003;
+    position: relative;
+  }
+  .modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  .modal-content input, .modal-content textarea {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .modal-content button {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
   }
   #items-container {
-    margin-top: 30px;
+    max-width: 900px;
+    margin: 30px auto;
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    justify-content: center;
+    gap: 15px;
   }
   .item-card {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    width: 220px;
+    width: 200px;
     padding: 15px;
-    box-sizing: border-box;
+    box-shadow: 0 0 8px #0002;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   .item-card img {
-    width: 100%;
+    max-width: 100%;
+    height: auto;
     border-radius: 6px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    object-fit: contain;
   }
-  .item-card h3 {
-    margin: 0 0 8px 0;
+  .item-title {
+    font-weight: bold;
     font-size: 18px;
+    margin-bottom: 10px;
+    min-height: 44px;
   }
-  .item-card p {
-    margin: 0 0 10px 0;
+  .item-desc {
+    font-size: 14px;
     color: #555;
+    margin-bottom: 12px;
+    min-height: 60px;
   }
-  .item-card a {
-    color: #0a74da;
-    text-decoration: none;
-    word-break: break-all;
+  .item-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
   }
-  .item-card a:hover {
-    text-decoration: underline;
+  .btn-edit, .btn-delete {
+    background: #ffc107;
+    border: none;
+    color: #333;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
+    font-size: 14px;
+  }
+  .btn-delete {
+    background: #dc3545;
+    color: white;
+  }
+  .btn-buy {
+    background: #28a745;
+    border: none;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: auto;
   }
 </style>
 </head>
 <body>
 
-<h1>Panel dodawania przedmiotów</h1>
+<header>
+  <h1>Panel przedmiotów</h1>
+</header>
 
-<form id="item-form">
-  <input type="text" id="item-name" placeholder="Nazwa przedmiotu" required />
-  <input type="text" id="item-desc" placeholder="Opis przedmiotu" required />
-  <input type="url" id="item-link" placeholder="Link do przedmiotu" required />
-  <input type="url" id="item-image" placeholder="Link do zdjęcia (np. z Imgur)" required />
-  <button type="submit">Dodaj przedmiot</button>
-</form>
+<button id="login-button">Zaloguj się</button>
+<button id="logout-button">Wyloguj się</button>
+
+<button id="add-item-button" style="display:none;">Dodaj przedmiot</button>
 
 <div id="items-container"></div>
 
-<script>
-  const form = document.getElementById('item-form');
-  const itemsContainer = document.getElementById('items-container');
+<!-- modal logowania -->
+<div id="login-modal">
+  <div class="modal-content">
+    <h2>Logowanie Admin</h2>
+    <input type="text" id="login-username" placeholder="Nazwa użytkownika" />
+    <input type="password" id="login-password" placeholder="Hasło" />
+    <button id="login-submit">Zaloguj</button>
+  </div>
+</div>
 
-  // wczytaj itemy z localStorage albo pusta tablica
-  let items = JSON.parse(localStorage.getItem('items') || '[]');
+<!-- modal dodawania/edycji przedmiotu -->
+<div id="item-modal">
+  <div class="modal-content">
+    <h2 id="modal-title">Dodaj przedmiot</h2>
+    <input type="text" id="item-name" placeholder="Nazwa przedmiotu" />
+    <textarea id="item-desc" placeholder="Opis przedmiotu" rows="3"></textarea>
+    <input type="url" id="item-link" placeholder="Link do przedmiotu (URL)" />
+    <input type="url" id="item-image" placeholder="Link do zdjecia (np z imgur)" />
+    <button id="item-save-btn">Zapisz</button>
+  </div>
+</div>
 
-  // funkcja renderujaca itemy w kontenerze
-  function renderItems() {
-    itemsContainer.innerHTML = '';
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
+<script type="module">
+// Firebase config i init
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-      const img = document.createElement('img');
-      img.src = item.image;
-      img.alt = item.name;
-      card.appendChild(img);
+const firebaseConfig = {
+  apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
+  authDomain: "spridszit-firerepy.firebaseapp.com",
+  databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "spridszit-firerepy",
+  storageBucket: "spridszit-firerepy.firebasestorage.app",
+  messagingSenderId: "963006920352",
+  appId: "1:963006920352:web:58538b879f004c02873bc5"
+};
 
-      const title = document.createElement('h3');
-      title.textContent = item.name;
-      card.appendChild(title);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-      const desc = document.createElement('p');
-      desc.textContent = item.description;
-      card.appendChild(desc);
+let isAdmin = false;
+let editingItemKey = null;
 
-      const link = document.createElement('a');
-      link.href = item.link;
-      link.textContent = item.link;
-      link.target = '_blank';
-      card.appendChild(link);
+// DOM refs
+const loginButton = document.getElementById("login-button");
+const logoutButton = document.getElementById("logout-button");
+const addItemButton = document.getElementById("add-item-button");
+const loginModal = document.getElementById("login-modal");
+const itemModal = document.getElementById("item-modal");
+const loginSubmit = document.getElementById("login-submit");
+const itemsContainer = document.getElementById("items-container");
+const modalTitle = document.getElementById("modal-title");
+const itemNameInput = document.getElementById("item-name");
+const itemDescInput = document.getElementById("item-desc");
+const itemLinkInput = document.getElementById("item-link");
+const itemImageInput = document.getElementById("item-image");
+const itemSaveBtn = document.getElementById("item-save-btn");
+const loginUsername = document.getElementById("login-username");
+const loginPassword = document.getElementById("login-password");
 
-      itemsContainer.appendChild(card);
-    });
+// admin dane
+const ADMIN_USER = "ifirelovereps";
+const ADMIN_PASS = "fi123re987re098ps321";
+
+function showLoginModal() {
+  loginModal.classList.add("active");
+  loginUsername.value = "";
+  loginPassword.value = "";
+  loginUsername.focus();
+}
+function hideLoginModal() {
+  loginModal.classList.remove("active");
+}
+function showItemModal(edit = false) {
+  itemModal.classList.add("active");
+  if (!edit) {
+    modalTitle.textContent = "Dodaj przedmiot";
+    itemNameInput.value = "";
+    itemDescInput.value = "";
+    itemLinkInput.value = "";
+    itemImageInput.value = "";
+    editingItemKey = null;
   }
+}
+function hideItemModal() {
+  itemModal.classList.remove("active");
+}
 
-  // pokaz itemy od razu po ladowaniu strony
-  renderItems();
+function renderItems(items) {
+  itemsContainer.innerHTML = "";
+  for (const key in items) {
+    const item = items[key];
+    const card = document.createElement("div");
+    card.className = "item-card";
 
-  // obsluga dodawania przedmiotu
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const newItem = {
-      name: form['item-name'].value.trim(),
-      description: form['item-desc'].value.trim(),
-      link: form['item-link'].value.trim(),
-      image: form['item-image'].value.trim()
-    };
-
-    if(!newItem.name || !newItem.description || !newItem.link || !newItem.image) {
-      alert('wypelnij wszystkie pola ziomek');
-      return;
+    if(item.image) {
+      const imgEl = document.createElement("img");
+      imgEl.src = item.image;
+      imgEl.alt = item.name;
+      card.appendChild(imgEl);
     }
 
-    items.push(newItem);
+    const titleEl = document.createElement("div");
+    titleEl.className = "item-title";
+    titleEl.textContent = item.name;
+    card.appendChild(titleEl);
 
-    // zapisz w localStorage
-    localStorage.setItem('items', JSON.stringify(items));
+    const descEl = document.createElement("div");
+    descEl.className = "item-desc";
+    descEl.textContent = item.description;
+    card.appendChild(descEl);
 
-    // wyczysc formularz
-    form.reset();
+    if (isAdmin) {
+      const btns = document.createElement("div");
+      btns.className = "item-buttons";
 
-    // odswiez kafelki
-    renderItems();
+      const editBtn = document.createElement("button");
+      editBtn.className = "btn-edit";
+      editBtn.textContent = "Edytuj";
+      editBtn.onclick = () => {
+        editingItemKey = key;
+        modalTitle.textContent = "Edytuj przedmiot";
+        itemNameInput.value = item.name;
+        itemDescInput.value = item.description;
+        itemLinkInput.value = item.link || "";
+        itemImageInput.value = item.image || "";
+        showItemModal(true);
+      };
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "btn-delete";
+      deleteBtn.textContent = "Usun";
+      deleteBtn.onclick = () => {
+        if (confirm("Czy na pewno chcesz usunac ten przedmiot?")) {
+          remove(ref(db, "items/" + key));
+        }
+      };
+
+      btns.appendChild(editBtn);
+      btns.appendChild(deleteBtn);
+      card.appendChild(btns);
+    }
+
+    if (item.link) {
+      const buyBtn = document.createElement("button");
+      buyBtn.className = "btn-buy";
+      buyBtn.textContent = "Kup teraz";
+      buyBtn.onclick = () => {
+        window.open(item.link, "_blank");
+      };
+      card.appendChild(buyBtn);
+    }
+
+    itemsContainer.appendChild(card);
+  }
+}
+
+function updateUIForAdmin() {
+  loginButton.style.display = "none";
+  logoutButton.style.display = "block";
+  addItemButton.style.display = "block";
+}
+
+function updateUIForGuest() {
+  loginButton.style.display = "block";
+  logoutButton.style.display = "none";
+  addItemButton.style.display = "none";
+}
+
+function fetchAndRenderItems() {
+  const itemsRef = ref(db, "items");
+  onValue(itemsRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    renderItems(data);
   });
+}
+
+loginButton.addEventListener("click", () => {
+  showLoginModal();
+});
+
+logoutButton.addEventListener("click", () => {
+  isAdmin = false;
+  updateUIForGuest();
+  fetchAndRenderItems();
+});
+
+loginSubmit.addEventListener("click", () => {
+  const user = loginUsername.value.trim();
+  const pass = loginPassword.value.trim();
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    isAdmin = true;
+    hideLoginModal();
+    updateUIForAdmin();
+    fetchAndRenderItems();
+  } else {
+    alert("Niepoprawny login lub haslo");
+  }
+});
+
+addItemButton.addEventListener("click", () => {
+  showItemModal();
+});
+
+itemSaveBtn.addEventListener("click", () => {
+  const name = itemNameInput.value.trim();
+  const desc = itemDescInput.value.trim();
+  const link = itemLinkInput.value.trim();
+  const image = itemImageInput.value.trim();
+
+  if (!name || !desc) {
+    alert("Prosze podac nazwe i opis przedmiotu");
+    return;
+  }
+  if (editingItemKey) {
+    update(ref(db, "items/" + editingItemKey), {
+      name,
+      description: desc,
+      link,
+      image
+    });
+  } else {
+    push(ref(db, "items"), {
+      name,
+      description: desc,
+      link,
+      image
+    });
+  }
+  hideItemModal();
+});
+
+loginModal.addEventListener("click", (e) => {
+  if (e.target === loginModal) hideLoginModal();
+});
+
+itemModal.addEventListener("click", (e) => {
+  if (e.target === itemModal) hideItemModal();
+});
+
+// start
+updateUIForGuest();
+fetchAndRenderItems();
+
 </script>
 
 </body>
