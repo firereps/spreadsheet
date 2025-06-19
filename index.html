@@ -3,10 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Panel z itemami - Firebase</title>
+<title>Panel przedmiotów z Firebase</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #f4f4f4; margin:0; padding:0; }
-  header { background: #222; color: #fff; padding: 15px; text-align:center; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0; padding: 0;
+  }
+  header {
+    background: #222;
+    color: #fff;
+    padding: 15px;
+    text-align: center;
+  }
   #login-button {
     position: fixed;
     top: 15px;
@@ -19,6 +28,32 @@
     cursor: pointer;
     font-weight: bold;
     z-index: 1000;
+  }
+  #logout-button {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #dc3545;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 1000;
+    display: none;
+  }
+  #add-item-button {
+    background: #28a745;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 15px auto;
+    display: block;
+    width: 150px;
   }
   #login-modal, #item-modal {
     display: none;
@@ -34,7 +69,7 @@
   }
   .modal-content {
     background: #fff;
-    padding: 20px;
+    padding: 20px 25px;
     border-radius: 8px;
     width: 320px;
     box-shadow: 0 0 10px #0003;
@@ -43,7 +78,7 @@
   .modal-content h2 {
     margin-top: 0;
     margin-bottom: 15px;
-    text-align:center;
+    text-align: center;
   }
   .modal-content input, .modal-content textarea {
     width: 100%;
@@ -52,153 +87,117 @@
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box;
-  }
-  .modal-content textarea {
-    resize: vertical;
   }
   .modal-content button {
-    width: 100%;
-    background: #28a745;
-    color: white;
+    background: #007bff;
     border: none;
-    padding: 10px;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
-    border-radius: 4px;
-  }
-  .modal-content button:hover {
-    background: #218838;
-  }
-  .close-btn {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    cursor: pointer;
-    font-size: 20px;
-    color: #888;
-    font-weight: bold;
-  }
-  .close-btn:hover {
-    color: #000;
-  }
-  #admin-panel {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 0 15px;
+    width: 100%;
   }
   #items-container {
+    max-width: 900px;
+    margin: 30px auto;
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
     justify-content: center;
+    gap: 15px;
   }
-  .item {
-    background: #fff;
+  .item-card {
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 0 6px #aaa;
-    width: 220px;
+    width: 200px;
     padding: 15px;
+    box-shadow: 0 0 8px #0002;
     display: flex;
     flex-direction: column;
-  }
-  .item img {
-    width: 100%;
-    border-radius: 6px;
-    object-fit: cover;
-    height: 140px;
-  }
-  .item h3 {
-    margin: 10px 0 5px;
-    cursor: grab;
-  }
-  .item p {
-    flex-grow: 1;
-    cursor: grab;
-  }
-  .btn-group {
-    margin-top: 10px;
-    display: flex;
     justify-content: space-between;
   }
-  .btn-group button {
-    width: 48%;
-    font-size: 14px;
-    padding: 8px;
-  }
-  .buy-btn {
-    background: #28a745;
-  }
-  .buy-btn:hover {
-    background: #218838;
-  }
-  .edit-btn {
-    background: #007bff;
-  }
-  .edit-btn:hover {
-    background: #0069d9;
-  }
-  .delete-btn {
-    background: #dc3545;
-  }
-  .delete-btn:hover {
-    background: #c82333;
-  }
-  #add-item-open-btn {
-    margin: 20px auto 40px;
-    display: block;
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 12px 20px;
+  .item-title {
     font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+    min-height: 44px;
+  }
+  .item-desc {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 12px;
+    min-height: 60px;
+  }
+  .item-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .btn-edit, .btn-delete {
+    background: #ffc107;
+    border: none;
+    color: #333;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
+    font-size: 14px;
+  }
+  .btn-delete {
+    background: #dc3545;
+    color: white;
+  }
+  .btn-buy {
+    background: #28a745;
+    border: none;
+    color: white;
+    padding: 8px;
     border-radius: 6px;
     cursor: pointer;
-    max-width: 220px;
-  }
-  #add-item-open-btn:hover {
-    background: #0056b3;
+    font-weight: bold;
+    margin-top: auto;
   }
 </style>
 </head>
 <body>
 
-<header><h1>Sprzedaż Przedmiotów - Panel</h1></header>
+<header>
+  <h1>Panel przedmiotów</h1>
+</header>
 
 <button id="login-button">Zaloguj się</button>
+<button id="logout-button">Wyloguj się</button>
 
+<button id="add-item-button" style="display:none;">Dodaj przedmiot</button>
+
+<div id="items-container"></div>
+
+<!-- modal logowania -->
 <div id="login-modal">
   <div class="modal-content">
-    <span class="close-btn" id="login-close">&times;</span>
-    <h2>Logowanie Administratora</h2>
-    <input type="text" id="login-username" placeholder="Nazwa użytkownika" autocomplete="username" />
-    <input type="password" id="login-password" placeholder="Hasło" autocomplete="current-password" />
-    <button id="login-submit-btn">Zaloguj się</button>
+    <h2>Logowanie Admin</h2>
+    <input type="text" id="login-username" placeholder="Nazwa użytkownika" />
+    <input type="password" id="login-password" placeholder="Hasło" />
+    <button id="login-submit">Zaloguj</button>
   </div>
 </div>
 
-<div id="admin-panel" class="hidden">
-  <button id="logout-btn" style="background:#dc3545; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; float:right; margin-bottom:10px;">Wyloguj się</button>
-  <button id="add-item-open-btn">DODAJ PRZEDMIOT</button>
-  <div id="items-container"></div>
-</div>
-
+<!-- modal dodawania/edycji przedmiotu -->
 <div id="item-modal">
   <div class="modal-content">
-    <span class="close-btn" id="item-close">&times;</span>
-    <h2 id="item-modal-title">Dodaj nowy przedmiot</h2>
+    <h2 id="modal-title">Dodaj przedmiot</h2>
     <input type="text" id="item-name" placeholder="Nazwa przedmiotu" />
     <textarea id="item-desc" placeholder="Opis przedmiotu" rows="3"></textarea>
-    <input type="text" id="item-link" placeholder="Link do przedmiotu (np. sklep)" />
-    <input type="text" id="item-img" placeholder="Link do obrazka (URL)" />
-    <button id="item-save-btn">Dodaj przedmiot</button>
+    <input type="url" id="item-link" placeholder="Link do przedmiotu (URL)" />
+    <button id="item-save-btn">Zapisz</button>
   </div>
 </div>
 
 <script type="module">
-// firebase importy
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getDatabase, ref as dbRef, onValue, push, set, remove, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+// Firebase config i init
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
@@ -209,237 +208,204 @@ const firebaseConfig = {
   messagingSenderId: "963006920352",
   appId: "1:963006920352:web:58538b879f004c02873bc5"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let isAdmin = false;
+let editingItemKey = null;
 
-const loginButton = document.getElementById('login-button');
-const loginModal = document.getElementById('login-modal');
-const loginClose = document.getElementById('login-close');
-const loginSubmitBtn = document.getElementById('login-submit-btn');
-const loginUsername = document.getElementById('login-username');
-const loginPassword = document.getElementById('login-password');
+// DOM refs
+const loginButton = document.getElementById("login-button");
+const logoutButton = document.getElementById("logout-button");
+const addItemButton = document.getElementById("add-item-button");
+const loginModal = document.getElementById("login-modal");
+const itemModal = document.getElementById("item-modal");
+const loginSubmit = document.getElementById("login-submit");
+const itemsContainer = document.getElementById("items-container");
+const modalTitle = document.getElementById("modal-title");
+const itemNameInput = document.getElementById("item-name");
+const itemDescInput = document.getElementById("item-desc");
+const itemLinkInput = document.getElementById("item-link");
+const itemSaveBtn = document.getElementById("item-save-btn");
+const loginUsername = document.getElementById("login-username");
+const loginPassword = document.getElementById("login-password");
 
-const adminPanel = document.getElementById('admin-panel');
-const logoutBtn = document.getElementById('logout-btn');
-const addItemOpenBtn = document.getElementById('add-item-open-btn');
-const itemsContainer = document.getElementById('items-container');
+// admin dane
+const ADMIN_USER = "ifirelovereps";
+const ADMIN_PASS = "fi123re987re098ps321";
 
-const itemModal = document.getElementById('item-modal');
-const itemClose = document.getElementById('item-close');
-const itemModalTitle = document.getElementById('item-modal-title');
-const itemNameInput = document.getElementById('item-name');
-const itemDescInput = document.getElementById('item-desc');
-const itemLinkInput = document.getElementById('item-link');
-const itemImgInput = document.getElementById('item-img');
-const itemSaveBtn = document.getElementById('item-save-btn');
-
-let editingKey = null;
-
-// logowanie modal
-loginButton.addEventListener('click', () => {
-  loginModal.classList.add('active');
-});
-
-loginClose.addEventListener('click', () => {
-  loginModal.classList.remove('active');
-  loginUsername.value = '';
-  loginPassword.value = '';
-});
-
-loginSubmitBtn.addEventListener('click', () => {
-  const user = loginUsername.value.trim();
-  const pass = loginPassword.value.trim();
-  if(user === 'ifirelovereps' && pass === 'fi123re987re098ps321') {
-    isAdmin = true;
-    loginModal.classList.remove('active');
-    loginUsername.value = '';
-    loginPassword.value = '';
-    loginButton.style.display = 'none';
-    adminPanel.classList.remove('hidden');
-    zaladujPrzedmioty();
-  } else {
-    alert('Niepoprawna nazwa użytkownika lub hasło');
+function showLoginModal() {
+  loginModal.classList.add("active");
+  loginUsername.value = "";
+  loginPassword.value = "";
+  loginUsername.focus();
+}
+function hideLoginModal() {
+  loginModal.classList.remove("active");
+}
+function showItemModal(edit = false) {
+  itemModal.classList.add("active");
+  if (!edit) {
+    modalTitle.textContent = "Dodaj przedmiot";
+    itemNameInput.value = "";
+    itemDescInput.value = "";
+    itemLinkInput.value = "";
+    editingItemKey = null;
   }
-});
-
-// logout
-logoutBtn.addEventListener('click', () => {
-  isAdmin = false;
-  adminPanel.classList.add('hidden');
-  loginButton.style.display = 'block';
-  itemsContainer.innerHTML = '';
-  zaladujPrzedmioty();
-});
-
-// dodawanie nowego itemu modal
-addItemOpenBtn.addEventListener('click', () => {
-  editingKey = null;
-  itemModalTitle.textContent = 'Dodaj nowy przedmiot';
-  itemSaveBtn.textContent = 'Dodaj przedmiot';
-  itemNameInput.value = '';
-  itemDescInput.value = '';
-  itemLinkInput.value = '';
-  itemImgInput.value = '';
-  itemModal.classList.add('active');
-});
-
-itemClose.addEventListener('click', () => {
-  itemModal.classList.remove('active');
-});
-
-// zaladowanie itemow z firebase i wyswietlanie
-function zaladujPrzedmioty() {
-  itemsContainer.innerHTML = 'Ładuję przedmioty...';
-
-  const itemsRef = dbRef(db, 'items');
-  onValue(itemsRef, (snapshot) => {
-    itemsContainer.innerHTML = '';
-    const data = snapshot.val();
-    if(!data) {
-      itemsContainer.innerHTML = '<p>Brak przedmiotów do wyświetlenia.</p>';
-      return;
-    }
-
-    Object.entries(data).forEach(([key, item]) => {
-      const itemEl = document.createElement('div');
-      itemEl.className = 'item';
-
-      const titleEl = document.createElement('h3');
-      titleEl.textContent = item.name;
-      if(isAdmin) {
-        titleEl.setAttribute('draggable', 'true');
-        titleEl.ondragstart = (e) => {
-          e.dataTransfer.setData('text/plain', key);
-        };
-        titleEl.ondragover = (e) => e.preventDefault();
-        titleEl.ondrop = (e) => {
-          e.preventDefault();
-          const draggedKey = e.dataTransfer.getData('text/plain');
-          if(draggedKey && draggedKey !== key) {
-            const draggedItemOrderRef = dbRef(db, 'items/' + draggedKey + '/order');
-            const targetItemOrderRef = dbRef(db, 'items/' + key + '/order');
-
-            Promise.all([
-              getOrder(draggedKey),
-              getOrder(key)
-            ]).then(([draggedOrder, targetOrder]) => {
-              update(draggedItemOrderRef, targetOrder);
-              update(targetItemOrderRef, draggedOrder);
-            });
-          }
-        };
-      }
-
-      const descEl = document.createElement('p');
-      descEl.textContent = item.desc;
-
-      const imgEl = document.createElement('img');
-      imgEl.src = item.img || '';
-      imgEl.alt = item.name;
-
-      const btnGroup = document.createElement('div');
-      btnGroup.className = 'btn-group';
-
-      const buyBtn = document.createElement('button');
-      buyBtn.className = 'buy-btn';
-      buyBtn.textContent = 'Kup teraz';
-      buyBtn.onclick = () => {
-        window.open(item.link, '_blank');
-      };
-
-      btnGroup.appendChild(buyBtn);
-
-      if(isAdmin) {
-        const editBtn = document.createElement('button');
-        editBtn.className = 'edit-btn';
-        editBtn.textContent = 'Edytuj';
-        editBtn.onclick = () => {
-          edytujPrzedmiot(key, item);
-        };
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Usuń';
-        deleteBtn.onclick = () => {
-          if(confirm('Na pewno chcesz usunac ten przedmiot?')) {
-            usunPrzedmiot(key);
-          }
-        };
-
-        btnGroup.appendChild(editBtn);
-        btnGroup.appendChild(deleteBtn);
-      }
-
-      itemEl.appendChild(imgEl);
-      itemEl.appendChild(titleEl);
-      itemEl.appendChild(descEl);
-      itemEl.appendChild(btnGroup);
-
-      itemsContainer.appendChild(itemEl);
-    });
-  }, { onlyOnce: false });
+}
+function hideItemModal() {
+  itemModal.classList.remove("active");
 }
 
-async function getOrder(key) {
-  const orderRef = dbRef(db, 'items/' + key + '/order');
-  return new Promise((resolve) => {
-    onValue(orderRef, (snap) => {
-      resolve(snap.val() || 0);
-    }, { onlyOnce: true });
+function renderItems(items) {
+  itemsContainer.innerHTML = "";
+  for (const key in items) {
+    const item = items[key];
+    const card = document.createElement("div");
+    card.className = "item-card";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "item-title";
+    titleEl.textContent = item.name;
+    card.appendChild(titleEl);
+
+    const descEl = document.createElement("div");
+    descEl.className = "item-desc";
+    descEl.textContent = item.description;
+    card.appendChild(descEl);
+
+    // dla admina dodaj przyciski edycji i usuwania
+    if (isAdmin) {
+      const btns = document.createElement("div");
+      btns.className = "item-buttons";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "btn-edit";
+      editBtn.textContent = "Edytuj";
+      editBtn.onclick = () => {
+        editingItemKey = key;
+        modalTitle.textContent = "Edytuj przedmiot";
+        itemNameInput.value = item.name;
+        itemDescInput.value = item.description;
+        itemLinkInput.value = item.link || "";
+        showItemModal(true);
+      };
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "btn-delete";
+      deleteBtn.textContent = "Usuń";
+      deleteBtn.onclick = () => {
+        if (confirm("Czy na pewno chcesz usunąć ten przedmiot?")) {
+          remove(ref(db, "items/" + key));
+        }
+      };
+
+      btns.appendChild(editBtn);
+      btns.appendChild(deleteBtn);
+      card.appendChild(btns);
+    }
+
+    // przycisk kup dla kazdego usera
+    if (item.link) {
+      const buyBtn = document.createElement("button");
+      buyBtn.className = "btn-buy";
+      buyBtn.textContent = "Kup teraz";
+      buyBtn.onclick = () => {
+        window.open(item.link, "_blank");
+      };
+      card.appendChild(buyBtn);
+    }
+
+    itemsContainer.appendChild(card);
+  }
+}
+
+function updateUIForAdmin() {
+  loginButton.style.display = "none";
+  logoutButton.style.display = "block";
+  addItemButton.style.display = "block";
+}
+
+function updateUIForGuest() {
+  loginButton.style.display = "block";
+  logoutButton.style.display = "none";
+  addItemButton.style.display = "none";
+}
+
+function fetchAndRenderItems() {
+  const itemsRef = ref(db, "items");
+  onValue(itemsRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    renderItems(data);
   });
 }
 
-// edycja itemu
-function edytujPrzedmiot(key, item) {
-  editingKey = key;
-  itemModalTitle.textContent = 'Edytuj przedmiot';
-  itemSaveBtn.textContent = 'Zapisz zmiany';
-  itemNameInput.value = item.name || '';
-  itemDescInput.value = item.desc || '';
-  itemLinkInput.value = item.link || '';
-  itemImgInput.value = item.img || '';
-  itemModal.classList.add('active');
-}
+loginButton.addEventListener("click", () => {
+  showLoginModal();
+});
 
-// zapisz (dodaj lub edytuj)
-itemSaveBtn.addEventListener('click', () => {
-  const name = itemNameInput.value.trim();
-  const desc = itemDescInput.value.trim();
-  const link = itemLinkInput.value.trim();
-  const img = itemImgInput.value.trim();
+logoutButton.addEventListener("click", () => {
+  isAdmin = false;
+  updateUIForGuest();
+  fetchAndRenderItems();
+});
 
-  if(!name || !desc || !link) {
-    alert('wypelnij wszystkie pola poza obrazkiem');
-    return;
-  }
-
-  if(editingKey) {
-    const itemRef = dbRef(db, 'items/' + editingKey);
-    update(itemRef, { name, desc, link, img })
-      .then(() => {
-        itemModal.classList.remove('active');
-      });
+loginSubmit.addEventListener("click", () => {
+  const user = loginUsername.value.trim();
+  const pass = loginPassword.value.trim();
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    isAdmin = true;
+    hideLoginModal();
+    updateUIForAdmin();
+    fetchAndRenderItems();
   } else {
-    const itemsRef = dbRef(db, 'items');
-    push(itemsRef, { name, desc, link, img, order: Date.now() })
-      .then(() => {
-        itemModal.classList.remove('active');
-      });
+    alert("Niepoprawny login lub hasło");
   }
 });
 
-// usuwanie
-function usunPrzedmiot(key) {
-  const itemRef = dbRef(db, 'items/' + key);
-  remove(itemRef);
-}
+addItemButton.addEventListener("click", () => {
+  showItemModal();
+});
 
-// laduj itemy dla nieadmina (bez panelu)
-if(!isAdmin) {
-  zaladujPrzedmioty();
-}
+itemSaveBtn.addEventListener("click", () => {
+  const name = itemNameInput.value.trim();
+  const desc = itemDescInput.value.trim();
+  const link = itemLinkInput.value.trim();
+
+  if (!name || !desc) {
+    alert("Proszę podać nazwę i opis przedmiotu");
+    return;
+  }
+  // jesli edytujemy
+  if (editingItemKey) {
+    update(ref(db, "items/" + editingItemKey), {
+      name,
+      description: desc,
+      link
+    });
+  } else {
+    push(ref(db, "items"), {
+      name,
+      description: desc,
+      link
+    });
+  }
+  hideItemModal();
+});
+
+loginModal.addEventListener("click", (e) => {
+  if (e.target === loginModal) hideLoginModal();
+});
+
+itemModal.addEventListener("click", (e) => {
+  if (e.target === itemModal) hideItemModal();
+});
+
+// na start ustaw UI gościa i pobierz itemy
+updateUIForGuest();
+fetchAndRenderItems();
+
 </script>
 
 </body>
