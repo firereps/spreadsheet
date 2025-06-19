@@ -4,8 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>FireReps Spreadsheet - Panel</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
 <style>
   body {
@@ -15,8 +13,6 @@
     color: #1c1e21;
     transition: filter 0.3s ease-in-out;
   }
-  body.modal-open { overflow: hidden; }
-  body.modal-open > *:not(.modal) { filter: blur(5px); }
   header {
     background-color: #fff;
     padding: 10px 20px;
@@ -68,6 +64,7 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
   }
   .item-card:hover {
     transform: translateY(-5px);
@@ -78,24 +75,24 @@
     height: 200px;
     object-fit: cover;
   }
-  .item-card .card-content {
+  .card-content {
     padding: 15px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
   }
-  .item-card h3 {
+  .card-content h3 {
     margin: 0 0 10px 0;
     font-size: 20px;
     color: #1c1e21;
   }
-  .item-card p {
+  .card-content p {
     margin: 0 0 15px 0;
     font-size: 14px;
     color: #606770;
     flex-grow: 1;
   }
-  .item-card .buy-btn {
+  .buy-btn {
     display: block;
     width: 100%;
     padding: 10px 0;
@@ -108,19 +105,17 @@
     margin-top: auto;
     transition: background-color 0.2s;
   }
-  .item-card .buy-btn:hover {
+  .buy-btn:hover {
     background-color: #36a420;
   }
   .delete-btn {
-    display: none;
-    width: 100%;
-    padding: 10px 0;
-    text-align: center;
     background-color: #e74c3c;
     color: white;
-    font-weight: bold;
-    border-radius: 6px;
     border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    padding: 8px 0;
+    width: 100%;
     margin-top: 10px;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -128,37 +123,37 @@
   .delete-btn:hover {
     background-color: #c0392b;
   }
-  body.admin-view .delete-btn {
-    display: block;
-  }
-  /* nowy panel dodawania */
-  #add-item-form {
+  .hidden {
     display: none;
-    background: #fff;
-    padding: 15px 20px;
+  }
+  /* panel dodawania - start hidden */
+  #add-item-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 320px;
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    margin: 10px 20px 0 20px;
-    max-width: 600px;
-    position: sticky;
-    top: 60px;
-    z-index: 101;
-  }
-  body.admin-view #add-item-form {
-    display: flex;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    padding: 15px;
+    z-index: 105;
+    display: none;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
   }
-  #add-item-form input[type=text], #add-item-form input[type=url] {
+  #add-item-panel input[type=text], #add-item-panel textarea {
     padding: 8px;
     border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 14px;
-    flex: 1 1 150px;
+    width: 100%;
+    box-sizing: border-box;
   }
-  #add-item-form button {
-    padding: 10px 20px;
+  #add-item-panel input[type=file] {
+    border: none;
+  }
+  #add-item-panel button {
+    padding: 10px;
     background-color: #42b72a;
     border: none;
     border-radius: 6px;
@@ -167,8 +162,82 @@
     cursor: pointer;
     transition: background-color 0.2s;
   }
-  #add-item-form button:hover {
+  #add-item-panel button:hover {
     background-color: #36a420;
+  }
+  /* plusik z napisem dodaj */
+  #add-btn-wrapper {
+    width: 300px;
+    margin: 40px auto 0 auto;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+  }
+  #add-btn-wrapper:hover {
+    opacity: 0.8;
+  }
+  #add-btn {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 8px auto;
+    background-color: #1877f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+    line-height: 1;
+    font-weight: 700;
+  }
+  #add-btn-text {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1877f2;
+  }
+  /* modal potwierdzenia usuniecia */
+  #confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right:0;
+    bottom:0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  #confirm-box {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 320px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  #confirm-box p {
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  #confirm-buttons {
+    display: flex;
+    justify-content: space-around;
+  }
+  #confirm-buttons button {
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  #confirm-yes {
+    background-color: #e74c3c;
+    color: white;
+  }
+  #confirm-no {
+    background-color: #444;
+    color: white;
   }
 </style>
 </head>
@@ -178,42 +247,68 @@
   <button id="login-btn">zaloguj</button>
 </header>
 
-<form id="add-item-form">
+<!-- plusik dodaj -->
+<div id="add-btn-wrapper" class="hidden" title="dodaj item">
+  <div id="add-btn">+</div>
+  <div id="add-btn-text">dodaj</div>
+</div>
+
+<!-- panel dodawania -->
+<form id="add-item-panel" enctype="multipart/form-data">
   <input type="text" id="item-name" placeholder="nazwa" required />
-  <input type="text" id="item-desc" placeholder="opis" />
-  <input type="url" id="item-image" placeholder="url obrazka" required />
-  <input type="url" id="item-link" placeholder="link do sklepu" required />
+  <textarea id="item-desc" placeholder="opis" rows="3"></textarea>
+  <input type="file" id="item-image" accept="image/*" required />
   <button type="submit">dodaj</button>
 </form>
 
 <main id="item-container"></main>
 
+<!-- modal potwierdzenia -->
+<div id="confirm-modal">
+  <div id="confirm-box">
+    <p>czy na pewno chcesz usunac ten przedmiot?</p>
+    <div id="confirm-buttons">
+      <button id="confirm-yes">tak</button>
+      <button id="confirm-no">nie</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
   import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+  import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB7tQvTVeG-WlBcvTByiKW7GfPpD52vDGw",
     authDomain: "spridszit-firerepy.firebaseapp.com",
     databaseURL: "https://spridszit-firerepy-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "spridszit-firerepy",
-    storageBucket: "spridszit-firerepy.firebasestorage.app",
+    storageBucket: "spridszit-firerepy.appspot.com",
     messagingSenderId: "963006920352",
     appId: "1:963006920352:web:58538b879f004c02873bc5"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const storage = getStorage(app);
   const itemsRef = ref(db, 'items');
 
   const loginBtn = document.getElementById('login-btn');
   const itemContainer = document.getElementById('item-container');
-  const addItemForm = document.getElementById('add-item-form');
+  const addItemPanel = document.getElementById('add-item-panel');
+  const addBtnWrapper = document.getElementById('add-btn-wrapper');
   const body = document.body;
+
+  const confirmModal = document.getElementById('confirm-modal');
+  const confirmYesBtn = document.getElementById('confirm-yes');
+  const confirmNoBtn = document.getElementById('confirm-no');
 
   const ADMIN_LOGIN = 'ifirelovereps';
   const ADMIN_PASS = 'fi123re987re098ps321';
   let isAdmin = false;
+
+  let itemToDeleteKey = null;
 
   function renderItems(data) {
     itemContainer.innerHTML = '';
@@ -250,9 +345,8 @@
         delBtn.className = 'delete-btn';
         delBtn.textContent = 'usun';
         delBtn.onclick = () => {
-          if (confirm(`usunac "${item.name}"?`)) {
-            remove(ref(db, `items/${key}`));
-          }
+          itemToDeleteKey = key;
+          confirmModal.style.display = 'flex';
         };
         content.appendChild(delBtn);
       }
@@ -273,7 +367,9 @@
       isAdmin = false;
       body.classList.remove('admin-view');
       loginBtn.textContent = 'zaloguj';
-      addItemForm.style.display = 'none';
+      addBtnWrapper.classList.add('hidden');
+      addItemPanel.style.display = 'none';
+      confirmModal.style.display = 'none';
       alert('wylogowano ziomek');
     } else {
       const login = prompt('login');
@@ -282,7 +378,7 @@
         isAdmin = true;
         body.classList.add('admin-view');
         loginBtn.textContent = 'wyloguj';
-        addItemForm.style.display = 'flex';
+        addBtnWrapper.classList.remove('hidden');
         alert('witaj adminie');
       } else {
         alert('zly login lub haslo');
@@ -290,25 +386,58 @@
     }
   });
 
-  addItemForm.addEventListener('submit', (e) => {
+  addBtnWrapper.addEventListener('click', () => {
+    if (addItemPanel.style.display === 'flex') {
+      addItemPanel.style.display = 'none';
+    } else {
+      addItemPanel.style.display = 'flex';
+      addItemPanel.style.flexDirection = 'column';
+    }
+  });
+
+  addItemPanel.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!isAdmin) return alert('nie jestes adminem ziomek');
 
     const name = document.getElementById('item-name').value.trim();
     const desc = document.getElementById('item-desc').value.trim();
-    const image = document.getElementById('item-image').value.trim();
-    const link = document.getElementById('item-link').value.trim();
+    const imageInput = document.getElementById('item-image');
 
-    if (!name || !image || !link) {
-      return alert('musisz podac nazwe, url obrazka i link');
+    if (!name || imageInput.files.length === 0) {
+      return alert('musisz podac nazwe i obrazek');
     }
 
-    push(itemsRef, { name, description: desc, image, link })
-      .then(() => {
-        addItemForm.reset();
-      })
-      .catch(() => alert('cos sie jebnelo'));
+    const file = imageInput.files[0];
+    const storageRef = sref(storage, 'item-images/' + Date.now() + '-' + file.name);
+
+    try {
+      // wrzuc plik do firebase storage
+      await uploadBytes(storageRef, file);
+      // pobierz url
+      const imageUrl = await getDownloadURL(storageRef);
+      // zapisz item do db
+      await push(itemsRef, { name, description: desc, image: imageUrl, link: '' });
+      addItemPanel.reset();
+      addItemPanel.style.display = 'none';
+    } catch {
+      alert('cos sie jebnelo podczas wrzucania obrazka');
+    }
   });
+
+  // obsługa potwierdzenia usuniecia
+  confirmYesBtn.addEventListener('click', () => {
+    if (itemToDeleteKey) {
+      remove(ref(db, `items/${itemToDeleteKey}`));
+      itemToDeleteKey = null;
+      confirmModal.style.display = 'none';
+    }
+  });
+
+  confirmNoBtn.addEventListener('click', () => {
+    itemToDeleteKey = null;
+    confirmModal.style.display = 'none';
+  });
+
 </script>
 </body>
 </html>
